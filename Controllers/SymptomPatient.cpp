@@ -9,31 +9,59 @@ SymptomPatient::SymptomPatient()
     : SP_id(""), S_id(""), P_id(""), date(0, 0, 0) {}
 
 SymptomPatient::SymptomPatient(std::ifstream &f) {
-    if (!getline(f, SP_id, '|')) {
-        setDefault();
-        return;
-    }
-    libPBL2::trim(SP_id);
+    setDefault();
+    string line;
+    bool foundOpenBrace = false;
 
-    if (!getline(f, S_id, '|')) {
-        setDefault();
-        return;
+    while (getline(f, line)) {
+        libPBL2::trim(line);
+        if (line.empty()) continue;
+        if (line.find('{') != string::npos) {
+            foundOpenBrace = true;
+            break;
+        }
     }
-    libPBL2::trim(S_id);
 
-    if (!getline(f, P_id, '|')) {
+    if (!foundOpenBrace) {
         setDefault();
         return;
     }
-    libPBL2::trim(P_id);
 
-    string dateStr;
-    if (!getline(f, dateStr, '\n')) {
-        setDefault();
-        return;
+    while (getline(f, line)) {
+        libPBL2::trim(line);
+        if (line.empty()) continue;
+
+        if (line.find('}') != string::npos) {
+            break;
+        }
+
+        size_t colonPos = line.find(':');
+        if (colonPos != string::npos) {
+            string key = line.substr(0, colonPos);
+            string val = line.substr(colonPos + 1);
+            libPBL2::trim(key);
+            libPBL2::trim(val);
+
+            if (!val.empty() && val.back() == ',') {
+                val.pop_back();
+                libPBL2::trim(val);
+            }
+
+            if (key == "SP_id") {
+                this->SP_id = val;
+            } else if (key == "S_id") {
+                this->S_id = val;
+            } else if (key == "P_id") {
+                this->P_id = val;
+            } else if (key == "Date") {
+                this->date = Date::fromString(val);
+            }
+        }
     }
-    libPBL2::trim(dateStr);
-    date = Date::fromString(dateStr);
+
+    if (this->SP_id.empty()) {
+        setDefault();
+    }
 }
 
 SymptomPatient::SymptomPatient(std::string SP_id, std::string S_id, std::string P_id, Date date)
@@ -63,9 +91,19 @@ void SymptomPatient::setS_id(string S_id) { this->S_id = S_id; }
 void SymptomPatient::setP_id(string P_id) { this->P_id = P_id; }
 void SymptomPatient::setDate(Date date) { this->date = date; }
 
+void SymptomPatient::addS_id(const string &id) {
+    if (this->S_id.empty()) {
+        this->S_id = id;
+    } else {
+        this->S_id += ", " + id;
+    }
+}
+
 void SymptomPatient::save(std::ofstream &f) const {
-    f << left << setw(6) << SP_id << " | "
-      << setw(5) << S_id << " | "
-      << setw(5) << P_id << " | "
-      << date.toString() << "\n";
+    f << "{\n"
+      << "\tSP_id: " << SP_id << ",\n"
+      << "\tS_id: " << S_id << ",\n"
+      << "\tP_id: " << P_id << ",\n"
+      << "\tDate: " << date.toString() << ",\n"
+      << "},\n";
 }

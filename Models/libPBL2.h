@@ -7,7 +7,9 @@
 #include "SymptomPatient.h"
 #include "Manager.h"
 #include "Doctor.h"
+#include "QueuePatient.h"
 #include "LinkList.h"
+#include "Queue.h"
 
 namespace libPBL2 {
 
@@ -31,15 +33,16 @@ namespace libPBL2 {
 
     void trim(std::string &str);
     void filterNewline(std::string &str);
+    size_t utf8Length(const std::string &str);
+    std::string padRightUtf8(const std::string &str, size_t targetWidth);
 
-    // Truyền PermissionType theo giá trị (pass-by-value)
     bool isAllowed(const Manager &M, PermissionType Per, const LinkList<Permission> *PermissionList = nullptr);
 
-    template <typename T>
-    LinkList<T>* LoadFromFile(const std::string &path);
+    template <typename T, template <typename> class U = LinkList>
+    U<T>* LoadFromFile(const std::string &path);
 
-    template <typename T>
-    bool SaveToFile(const std::string &path, const LinkList<T> *list);
+    template <typename T, template <typename> class U = LinkList>
+    bool SaveToFile(const std::string &path, const U<T> *container);
 
     template <typename T>
     T getFromStr(const std::string &str);
@@ -50,28 +53,35 @@ namespace libPBL2 {
     template <typename T>
     std::string generateNext_id(const LinkList<T> *list);
 
-    // --- Template Specialization Declarations ---
     template <>
-    LinkList<Manager>* LoadFromFile<Manager>(const std::string &path);
+    LinkList<Manager>* LoadFromFile<Manager, LinkList>(const std::string &path);
 
     template <>
-    LinkList<Permission>* LoadFromFile<Permission>(const std::string &path);
+    LinkList<Permission>* LoadFromFile<Permission, LinkList>(const std::string &path);
 
     template <>
-    LinkList<Patient>* LoadFromFile<Patient>(const std::string &path);
+    LinkList<Patient>* LoadFromFile<Patient, LinkList>(const std::string &path);
 
     template <>
-    LinkList<Symptom>* LoadFromFile<Symptom>(const std::string &path);
+    LinkList<Symptom>* LoadFromFile<Symptom, LinkList>(const std::string &path);
 
     template <>
-    LinkList<SymptomPatient>* LoadFromFile<SymptomPatient>(const std::string &path);
+    LinkList<SymptomPatient>* LoadFromFile<SymptomPatient, LinkList>(const std::string &path);
 
     template <>
-    LinkList<Doctor>* LoadFromFile<Doctor>(const std::string &path);
+    LinkList<Doctor>* LoadFromFile<Doctor, LinkList>(const std::string &path);
 
-    // Giữ nguyên chỉ riêng SaveToFile cho SymptomPatient
     template <>
-    bool SaveToFile<SymptomPatient>(const std::string &path, const LinkList<SymptomPatient> *list);
+    Queue<QueuePatient>* LoadFromFile<QueuePatient, Queue>(const std::string &path);
+
+    template <>
+    bool SaveToFile<SymptomPatient, LinkList>(const std::string &path, const LinkList<SymptomPatient> *list);
+
+    template <>
+    bool SaveToFile<Patient, LinkList>(const std::string &path, const LinkList<Patient> *list);
+
+    template <>
+    bool SaveToFile<QueuePatient, Queue>(const std::string &path, const Queue<QueuePatient> *queue);
 
     template <>
     PermissionType getFromStr<PermissionType>(const std::string &str);
@@ -85,6 +95,9 @@ namespace libPBL2 {
     template <>
     std::string generateNext_id<SymptomPatient>(const LinkList<SymptomPatient> *list);
 
-} // namespace libPBL2
+    template <>
+    std::string generateNext_id<Patient>(const LinkList<Patient> *list);
 
-#endif // LIBPBL2_H
+}
+
+#endif

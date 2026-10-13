@@ -3,10 +3,10 @@
 
 using namespace std;
 
-Doctor::Doctor(string _id, string _fullName, string _phone, 
+Doctor::Doctor(string _id, string _fullName, string _phone,
                bool _gender, int _age, string _spId, bool _state,
                string _roomId, double _fee, double _rating)
-    : spId(_spId), state(_state), roomId(_roomId), fee(_fee), rating(_rating) 
+    : spId(_spId), state(_state), roomId(_roomId), fee(_fee), rating(_rating)
 {
     this->id = _id;
     this->fullName = _fullName;

@@ -4,6 +4,8 @@
 #include <string>
 #include <fstream>
 
+class SymptomPatient;
+
 class QueuePatient {
     private:
         std::string SP_id;
@@ -13,6 +15,7 @@ class QueuePatient {
         QueuePatient();
         QueuePatient(std::ifstream &f);
         QueuePatient(std::string SP_id, std::string Sp_id, int state);
+        QueuePatient(const SymptomPatient &sp, std::string Sp_id = "", int state = 0);
         QueuePatient(const QueuePatient &QP);
         QueuePatient &operator=(const QueuePatient &QP) = default;
         ~QueuePatient();
@@ -27,6 +30,9 @@ class QueuePatient {
         void setSP_id(std::string SP_id);
         void setSp_id(std::string Sp_id);
         void setState(int state);
+        void setFromSymptomPatient(const SymptomPatient &sp, std::string Sp_id = "", int state = 0);
+
+        void save(std::ofstream &f) const;
 };
 
 #endif

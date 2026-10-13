@@ -19,7 +19,8 @@ class Patient: public Human {
         bool isDefault() const;
         std::string getCCCD() const;
         void setCCCD(std::string CCCD);
-};
 
+        void save(std::ofstream &f) const;
+};
 
 #endif

@@ -36,7 +36,6 @@ class Manager: public Human {
 
         void displayInfo() const override;
 
-        
 };
 
 #endif

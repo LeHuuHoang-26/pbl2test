@@ -1,6 +1,7 @@
 #include "Patient.h"
 #include <string>
 #include <fstream>
+#include <iomanip>
 #include "libPBL2.h"
 using namespace std;
 
@@ -69,3 +70,12 @@ bool Patient::isDefault() const {
 
 string Patient::getCCCD() const {return this->CCCD;}
 void Patient::setCCCD(string CCCD) {this->CCCD = CCCD;}
+
+void Patient::save(std::ofstream &f) const {
+    f << libPBL2::padRightUtf8(id, 5) << " | "
+      << libPBL2::padRightUtf8(fullName, 23) << " | "
+      << libPBL2::padRightUtf8(phone, 10) << " | "
+      << libPBL2::padRightUtf8(gender ? "1" : "0", 8) << " | "
+      << libPBL2::padRightUtf8(to_string(age), 5) << " | "
+      << CCCD << "\n";
+}

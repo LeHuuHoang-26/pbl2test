@@ -23,8 +23,8 @@ class Date {
         void setYear(int y);
         bool isDefault() const;
 
-        std::string toString() const;        // Định dạng YYYY-MM-DD
-        std::string toDisplayString() const; // Định dạng DD/MM/YYYY
+        std::string toString() const;
+        std::string toDisplayString() const;
         static Date fromString(const std::string &str);
         static Date now();
 

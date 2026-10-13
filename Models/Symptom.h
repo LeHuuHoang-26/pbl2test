@@ -25,11 +25,6 @@ class Symptom {
         std::string getSName() const;
         std::string getSp_id() const;
         int getSScore() const;
-
-        void setS_id(std::string S_id);
-        void setSName(std::string sName);
-        void setSp_id(std::string Sp_id);
-        void setSScore(int sScore);
 };
 
 #endif

@@ -1,7 +1,8 @@
 #include "libPBL2.h"
 #include <fstream>
 #include <string>
-#include <cstdio>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -27,6 +28,22 @@ void filterNewline(string &str) {
     str = res;
 }
 
+size_t utf8Length(const string &str) {
+    size_t len = 0;
+    for (unsigned char c : str) {
+        if ((c & 0xC0) != 0x80) {
+            len++;
+        }
+    }
+    return len;
+}
+
+string padRightUtf8(const string &str, size_t targetWidth) {
+    size_t ulen = utf8Length(str);
+    if (ulen >= targetWidth) return str;
+    return str + string(targetWidth - ulen, ' ');
+}
+
 bool isAllowed(const Manager &M, PermissionType Per, const LinkList<Permission> *PermissionList) {
     if (!M.isActive())
         return false;
@@ -40,7 +57,6 @@ bool isAllowed(const Manager &M, PermissionType Per, const LinkList<Permission> 
     if (PermissionList == nullptr || PermissionList->getHeader() == nullptr)
         return false;
 
-    // Bắt đầu từ getHeader()->next vì getHeader() là dummy head
     LinkList<Permission>::Node *tmp = PermissionList->getHeader()->next;
     while (tmp != nullptr && tmp->next != nullptr) {
         if (M.getID() == tmp->info.MA_id && tmp->info.Per_id == Per)
@@ -52,14 +68,14 @@ bool isAllowed(const Manager &M, PermissionType Per, const LinkList<Permission> 
 }
 
 template <>
-LinkList<Manager> *LoadFromFile<Manager>(const string &path) {
+LinkList<Manager> *LoadFromFile<Manager, LinkList>(const string &path) {
     LinkList<Manager> *ManagerList = new LinkList<Manager>;
-    if (!ManagerList) // Đã sửa: if (!ManagerList)
+    if (!ManagerList)
         return nullptr;
 
     ifstream f(path);
     if (!f.is_open()) {
-        delete ManagerList; // Giải phóng bộ nhớ tránh leak RAM
+        delete ManagerList;
         return nullptr;
     }
 
@@ -78,14 +94,14 @@ LinkList<Manager> *LoadFromFile<Manager>(const string &path) {
 }
 
 template <>
-LinkList<Permission> *LoadFromFile<Permission>(const string &path) {
+LinkList<Permission> *LoadFromFile<Permission, LinkList>(const string &path) {
     LinkList<Permission> *PerList = new LinkList<Permission>;
-    if (!PerList) // Đã sửa: if (!PerList)
+    if (!PerList)
         return nullptr;
 
     ifstream f(path);
     if (!f.is_open()) {
-        delete PerList; // Giải phóng bộ nhớ tránh leak RAM
+        delete PerList;
         return nullptr;
     }
 
@@ -149,14 +165,14 @@ string toStr<ManagerRole>(const ManagerRole &MA_Role) {
 }
 
 template <>
-LinkList<Patient> *LoadFromFile<Patient>(const string &path) {
+LinkList<Patient> *LoadFromFile<Patient, LinkList>(const string &path) {
     LinkList<Patient> *PatientList = new LinkList<Patient>;
     if (!PatientList)
         return nullptr;
 
     ifstream f(path);
     if (!f.is_open()) {
-        delete PatientList; // Giải phóng bộ nhớ tránh leak RAM
+        delete PatientList;
         return nullptr;
     }
 
@@ -175,14 +191,14 @@ LinkList<Patient> *LoadFromFile<Patient>(const string &path) {
 }
 
 template <>
-LinkList<Symptom> *LoadFromFile<Symptom>(const string &path) {
+LinkList<Symptom> *LoadFromFile<Symptom, LinkList>(const string &path) {
     LinkList<Symptom> *SymptomList = new LinkList<Symptom>;
     if (!SymptomList)
         return nullptr;
 
     ifstream f(path);
     if (!f.is_open()) {
-        delete SymptomList; // Giải phóng bộ nhớ tránh leak RAM
+        delete SymptomList;
         return nullptr;
     }
 
@@ -201,20 +217,16 @@ LinkList<Symptom> *LoadFromFile<Symptom>(const string &path) {
 }
 
 template <>
-LinkList<SymptomPatient> *LoadFromFile<SymptomPatient>(const string &path) {
+LinkList<SymptomPatient> *LoadFromFile<SymptomPatient, LinkList>(const string &path) {
     LinkList<SymptomPatient> *SPList = new LinkList<SymptomPatient>;
     if (!SPList)
         return nullptr;
 
     ifstream f(path);
     if (!f.is_open()) {
-        delete SPList; // Giải phóng bộ nhớ tránh leak RAM
+        delete SPList;
         return nullptr;
     }
-
-    string tmp;
-    getline(f, tmp);
-    getline(f, tmp);
 
     while (true) {
         SymptomPatient SP(f);
@@ -227,7 +239,7 @@ LinkList<SymptomPatient> *LoadFromFile<SymptomPatient>(const string &path) {
 }
 
 template <>
-LinkList<Doctor> *LoadFromFile<Doctor>(const string &path) {
+LinkList<Doctor> *LoadFromFile<Doctor, LinkList>(const string &path) {
     LinkList<Doctor> *DoctorList = new LinkList<Doctor>;
     if (!DoctorList)
         return nullptr;
@@ -293,16 +305,13 @@ LinkList<Doctor> *LoadFromFile<Doctor>(const string &path) {
 }
 
 template <>
-bool SaveToFile<SymptomPatient>(const string &path, const LinkList<SymptomPatient> *list) {
+bool SaveToFile<SymptomPatient, LinkList>(const string &path, const LinkList<SymptomPatient> *list) {
     if (!list || list->getHeader() == nullptr)
         return false;
 
     ofstream f(path);
     if (!f.is_open())
         return false;
-
-    f << "SP_id  | S_id  | P_id  | Date\n";
-    f << "-------+-------+-------+-----------\n";
 
     LinkList<SymptomPatient>::Node *tmp = list->getHeader()->next;
     while (tmp != nullptr && tmp->next != nullptr) {
@@ -332,9 +341,105 @@ string generateNext_id<SymptomPatient>(const LinkList<SymptomPatient> *list) {
             cur = cur->next;
         }
     }
-    char buf[16];
-    snprintf(buf, sizeof(buf), "SP_%03d", maxId + 1);
-    return string(buf);
+    ostringstream oss;
+    oss << "SP_" << setfill('0') << setw(3) << (maxId + 1);
+    return oss.str();
 }
 
-} // namespace libPBL2
+template <>
+string generateNext_id<Patient>(const LinkList<Patient> *list) {
+    int maxId = 0;
+    if (list && list->getHeader()) {
+        LinkList<Patient>::Node *cur = list->getHeader()->next;
+        while (cur != nullptr && cur->next != nullptr) {
+            string idStr = cur->info.getID();
+            if (idStr.length() > 2 && idStr.substr(0, 2) == "P_") {
+                try {
+                    int num = stoi(idStr.substr(2));
+                    if (num > maxId) maxId = num;
+                } catch (...) {}
+            }
+            cur = cur->next;
+        }
+    }
+    ostringstream oss;
+    oss << "P_" << setfill('0') << setw(3) << (maxId + 1);
+    return oss.str();
+}
+
+template <>
+bool SaveToFile<Patient, LinkList>(const string &path, const LinkList<Patient> *list) {
+    if (!list || list->getHeader() == nullptr)
+        return false;
+
+    ofstream f(path);
+    if (!f.is_open())
+        return false;
+
+    f << "P_ID  | P_FullName              | P_Phone    | P_Gender | P_Age | P_CCCD\n";
+    f << "------+-------------------------+------------+----------+-------+-------------\n";
+
+    LinkList<Patient>::Node *tmp = list->getHeader()->next;
+    while (tmp != nullptr && tmp->next != nullptr) {
+        if (!tmp->info.isDefault()) {
+            tmp->info.save(f);
+        }
+        tmp = tmp->next;
+    }
+
+    f.close();
+    return true;
+}
+
+template <>
+Queue<QueuePatient>* LoadFromFile<QueuePatient, Queue>(const string &path) {
+    Queue<QueuePatient> *queue = new Queue<QueuePatient>;
+    if (!queue)
+        return nullptr;
+
+    ifstream f(path);
+    if (!f.is_open()) {
+        delete queue;
+        return nullptr;
+    }
+
+    string tmp;
+    getline(f, tmp);
+    getline(f, tmp);
+
+    while (true) {
+        QueuePatient QP(f);
+        if (QP.isDefault())
+            break;
+        queue->enQueue(QP);
+    }
+    f.close();
+    queue->updateFirstWaiting();
+    return queue;
+}
+
+template <>
+bool SaveToFile<QueuePatient, Queue>(const string &path, const Queue<QueuePatient> *queue) {
+    if (!queue || queue->getHeader() == nullptr)
+        return false;
+
+    ofstream f(path);
+    if (!f.is_open())
+        return false;
+
+    f << "SP_id  | Sp_id  | State\n";
+    f << "-------+--------+------\n";
+
+    Queue<QueuePatient>::Node *tmp = queue->getHeader()->next;
+    while (tmp != nullptr && tmp != queue->getFooter()) {
+        if (tmp->data && !tmp->data->isDefault()) {
+            tmp->data->save(f);
+        }
+        tmp = tmp->next;
+    }
+
+    f.close();
+    return true;
+}
+
+}

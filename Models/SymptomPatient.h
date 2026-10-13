@@ -31,6 +31,7 @@ class SymptomPatient {
         void setS_id(std::string S_id);
         void setP_id(std::string P_id);
         void setDate(Date date);
+        void addS_id(const std::string &id);
 
         void save(std::ofstream &f) const;
 };

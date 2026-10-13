@@ -4,12 +4,12 @@
 #include <string>
 
 class Human {
-protected: 
+protected:
     std::string id;
     std::string fullName;
     std::string phone;
     bool gender;
-    int age; 
+    int age;
 
 public:
     Human(std::string id = "", std::string fullName = "", std::string phone = "", bool gender = false, int age = 0);
@@ -30,4 +30,4 @@ public:
     void setAge(int age);
 };
 
-#endif 
+#endif

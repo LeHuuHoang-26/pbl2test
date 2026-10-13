@@ -13,7 +13,7 @@ private:
     double rating;
 
 public:
-    Doctor(std::string _id = "", std::string _fullName = "", std::string _phone = "", 
+    Doctor(std::string _id = "", std::string _fullName = "", std::string _phone = "",
            bool _gender = true, int _age = 0, std::string _spId = "", bool _state = true,
            std::string _roomId = "", double _fee = 0.0, double _rating = 5.0);
 

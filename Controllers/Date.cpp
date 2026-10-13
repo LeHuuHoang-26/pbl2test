@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
-#include <cstdio>
+#include <sstream>
 using namespace std;
 
 Date::Date(int day, int month, int year): day(day), month(month), year(year) {}
@@ -41,8 +41,8 @@ istream &operator >> (istream &in, Date &D) {
 ostream &operator << (ostream &out, const Date &D) {
     out << "Date (dd/mm/yyyy): ";
     out << setfill('0');
-    out << setw(2) << D.day << '/' 
-        << setw(2) << D.month << '/' 
+    out << setw(2) << D.day << '/'
+        << setw(2) << D.month << '/'
         << setw(4) << D.year;
 
     out << endl;
@@ -59,7 +59,7 @@ int Date::posofdayinmonth(int monthVar) const {
 }
 
 bool Date::isLeapYear(int yearVar) const {
-    if (yearVar == 0) 
+    if (yearVar == 0)
         yearVar = year;
     if ((yearVar % 4 == 0 && yearVar % 100 != 0) || yearVar % 400 == 0)
         return 1;
@@ -162,7 +162,7 @@ Date Date::operator + (const int &value) {
         }
 
         tmpVar = tmp.posofdayinmonth();
-    
+
     }
     tmp.day += valueVar;
 
@@ -216,8 +216,8 @@ void Date::insert(int dd, int mm, int yyyy) {
 void Date::show() const {
     cout << "Date (dd/mm/yyyy): ";
     cout << setfill('0');
-    cout << setw(2) << day << '/' 
-        << setw(2) << month << '/' 
+    cout << setw(2) << day << '/'
+        << setw(2) << month << '/'
         << setw(4) << year;
 
     cout << endl;
@@ -236,28 +236,32 @@ bool Date::isDefault() const {
 }
 
 string Date::toString() const {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%04d-%02d-%02d", year, month, day);
-    return string(buf);
+    ostringstream oss;
+    oss << setfill('0') << setw(4) << year << "-"
+        << setw(2) << month << "-"
+        << setw(2) << day;
+    return oss.str();
 }
 
 string Date::toDisplayString() const {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%02d/%02d/%04d", day, month, year);
-    return string(buf);
+    ostringstream oss;
+    oss << setfill('0') << setw(2) << day << "/"
+        << setw(2) << month << "/"
+        << setw(4) << year;
+    return oss.str();
 }
 
 Date Date::fromString(const string &str) {
     if (str.empty()) return Date(0, 0, 0);
     int d = 0, m = 0, y = 0;
+    char sep1 = '\0', sep2 = '\0';
+    istringstream iss(str);
     if (str.find('-') != string::npos) {
-        // Dạng YYYY-MM-DD
-        if (sscanf(str.c_str(), "%d-%d-%d", &y, &m, &d) == 3) {
+        if (iss >> y >> sep1 >> m >> sep2 >> d && sep1 == '-' && sep2 == '-') {
             return Date(d, m, y);
         }
     } else if (str.find('/') != string::npos) {
-        // Dạng DD/MM/YYYY
-        if (sscanf(str.c_str(), "%d/%d/%d", &d, &m, &y) == 3) {
+        if (iss >> d >> sep1 >> m >> sep2 >> y && sep1 == '/' && sep2 == '/') {
             return Date(d, m, y);
         }
     }

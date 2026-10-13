@@ -61,7 +61,3 @@ string Symptom::getSName() const { return sName; }
 string Symptom::getSp_id() const { return Sp_id; }
 int Symptom::getSScore() const { return sScore; }
 
-void Symptom::setS_id(string S_id) { this->S_id = S_id; }
-void Symptom::setSName(string sName) { this->sName = sName; }
-void Symptom::setSp_id(string Sp_id) { this->Sp_id = Sp_id; }
-void Symptom::setSScore(int sScore) { this->sScore = sScore; }

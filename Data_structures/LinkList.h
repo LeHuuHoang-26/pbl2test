@@ -1,7 +1,6 @@
 #ifndef LINKLIST_H
 #define LINKLIST_H
 
-
 template <class T>
 class LinkList {
     public:
@@ -66,7 +65,7 @@ class LinkList {
 
             LinkList<T>::count++;
             return true;
-        }  
+        }
         bool remove(Node *N) {
             if (N == header || N == footer)
                 return false;
@@ -86,4 +85,4 @@ class LinkList {
         }
 };
 
-#endif // LINKLIST_H
+#endif
