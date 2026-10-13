@@ -260,7 +260,7 @@ void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *
     }
 
     Date currentDate = Date::now();
-    string spId = libPBL2::generateNext_id(spList);
+    string qpId = libPBL2::generateNext_id(spList);
 
     string primarySpId = "";
     int highestScore = -1;
@@ -279,11 +279,11 @@ void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *
         pNode = pNode->next;
     }
 
-    SymptomPatient latestSP(spId, allS_ids, patientId, currentDate);
+    SymptomPatient latestSP(qpId, allS_ids, patientId, currentDate);
     spList->insert(latestSP);
 
     cout << "\n================ XÁC NHẬN THÀNH CÔNG ================\n";
-    cout << "Mã lượt khám (SP_id)  : " << spId << "\n";
+    cout << "Mã hàng đợi (QP_id)   : " << qpId << "\n";
     cout << "Mã bệnh nhân          : " << patientId << "\n";
     cout << "Ngày tiếp nhận (Date) : " << currentDate.toDisplayString()
          << " (Định dạng file: " << currentDate.toString() << ")\n";
@@ -291,12 +291,12 @@ void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *
     if (queuePatient && !primarySpId.empty()) {
         queuePatient->enQueue(QueuePatient(latestSP, primarySpId, 0));
         cout << "\n>> ĐÃ TỰ ĐỘNG ĐƯA BỆNH NHÂN VÀO HÀNG ĐỢI (QUEUE):\n";
-        cout << "   - Mã lượt khám (SP_id)  : " << latestSP.getSP_id() << " (Nhận từ SymptomPatient)\n";
+        cout << "   - Mã hàng đợi (QP_id)   : " << latestSP.getQP_id() << " (Tham chiếu từ QueuePatient)\n";
         cout << "   - Khoa tiếp nhận (Sp_id): " << primarySpId << " (Khoa có độ ưu tiên cao nhất)\n";
         cout << "   - Trạng thái trong Queue: 0 (Đang chờ khám)\n";
         Queue<QueuePatient>::Node *firstW = queuePatient->getFirstWaiting();
         if (firstW && firstW->data) {
-            cout << ">> Con trỏ [firstWaiting] hiện tại: " << firstW->data->getSP_id() << "\n";
+            cout << ">> Con trỏ [firstWaiting] hiện tại: " << firstW->data->getQP_id() << "\n";
         }
     }
 }
@@ -325,7 +325,7 @@ void hienThiTrangThaiQueue(Queue<QueuePatient> *q) {
     Queue<QueuePatient>::Node *firstW = q->getFirstWaiting();
     if (firstW != nullptr && firstW != q->getFooter() && firstW->data != nullptr) {
         cout << "- [firstWaiting] ĐANG TRỎ TỚI:\n";
-        cout << "  + Mã lượt khám (SP_id)  : " << firstW->data->getSP_id() << "\n";
+        cout << "  + Mã hàng đợi (QP_id)   : " << firstW->data->getQP_id() << "\n";
         cout << "  + Chuyên khoa (Sp_id)   : " << firstW->data->getSp_id() << "\n";
         cout << "  + Trạng thái (State)    : " << firstW->data->getState() << " (Đang chờ)\n";
     } else {
@@ -344,7 +344,7 @@ void inDanhSachChoKham(Queue<QueuePatient> *q) {
     }
 
     cout << "\n===== DANH SÁCH BỆNH NHÂN ĐANG CHỜ KHÁM (BẮT ĐẦU TỪ firstWaiting - FIFO) =====\n";
-    cout << left << setw(8) << "STT" << setw(15) << "SP_id" << setw(15) << "Sp_id" << setw(15) << "Trạng thái" << "\n";
+    cout << left << setw(8) << "STT" << setw(15) << "QP_id" << setw(15) << "Sp_id" << setw(15) << "Trạng thái" << "\n";
     cout << "--------------------------------------------------------------------\n";
 
     int stt = 1;
@@ -352,7 +352,7 @@ void inDanhSachChoKham(Queue<QueuePatient> *q) {
     while (cur != q->getFooter() && cur != nullptr) {
         if (cur->data && cur->data->getState() == 0) {
             cout << left << setw(8) << stt++
-                 << setw(15) << cur->data->getSP_id()
+                 << setw(15) << cur->data->getQP_id()
                  << setw(15) << cur->data->getSp_id()
                  << setw(15) << "Chờ khám (0)" << "\n";
         }
@@ -365,7 +365,7 @@ void inToanBoQueue(Queue<QueuePatient> *q) {
     if (!q || !q->getHeader()) return;
 
     cout << "\n===== TOÀN BỘ BẢN GHI TRONG HÀNG ĐỢI (LỊCH SỬ + ĐANG CHỜ) =====\n";
-    cout << left << setw(8) << "STT" << setw(15) << "SP_id" << setw(15) << "Sp_id" << setw(15) << "Trạng thái" << "\n";
+    cout << left << setw(8) << "STT" << setw(15) << "QP_id" << setw(15) << "Sp_id" << setw(15) << "Trạng thái" << "\n";
     cout << "--------------------------------------------------------------\n";
 
     int stt = 1;
@@ -374,7 +374,7 @@ void inToanBoQueue(Queue<QueuePatient> *q) {
         if (cur->data) {
             string stateStr = (cur->data->getState() == 0) ? "Đang chờ (0)" : "Đã xử lý (1)";
             cout << left << setw(8) << stt++
-                 << setw(15) << cur->data->getSP_id()
+                 << setw(15) << cur->data->getQP_id()
                  << setw(15) << cur->data->getSp_id()
                  << setw(15) << stateStr << "\n";
         }
@@ -394,7 +394,7 @@ void testDeQueue(Queue<QueuePatient> *q) {
     }
 
     cout << "\n>> ĐÃ XỬ LÝ (deQueue) THÀNH CÔNG:\n";
-    cout << "   - Lượt khám (SP_id)  : " << qp->getSP_id() << "\n";
+    cout << "   - Hàng đợi (QP_id)   : " << qp->getQP_id() << "\n";
     cout << "   - Chuyên khoa (Sp_id): " << qp->getSp_id() << "\n";
     cout << "   - Trạng thái mới     : " << qp->getState() << " (Đã đổi State: 0 -> 1, vẫn giữ lại trong Queue)\n";
 
@@ -402,7 +402,7 @@ void testDeQueue(Queue<QueuePatient> *q) {
 
     Queue<QueuePatient>::Node *nextW = q->getFirstWaiting();
     if (nextW && nextW->data) {
-        cout << ">> Con trỏ [firstWaiting] kế tiếp: " << nextW->data->getSP_id()
+        cout << ">> Con trỏ [firstWaiting] kế tiếp: " << nextW->data->getQP_id()
              << " (Khoa: " << nextW->data->getSp_id() << ", State: " << nextW->data->getState() << ")\n";
     } else {
         cout << ">> Con trỏ [firstWaiting] kế tiếp: nullptr (Hàng đợi đã hết người chờ!)\n";
@@ -566,7 +566,7 @@ int main() {
                 case 7: {
                     Queue<QueuePatient>::Node *p = queuePatient->updateFirstWaiting();
                     if (p && p->data) {
-                        cout << "\n[OK] Đã quét lại! firstWaiting hiện trỏ tới: " << p->data->getSP_id()
+                        cout << "\n[OK] Đã quét lại! firstWaiting hiện trỏ tới: " << p->data->getQP_id()
                              << " (Khoa: " << p->data->getSp_id() << ", State: " << p->data->getState() << ")\n";
                     } else {
                         cout << "\n[OK] Đã quét lại! Hiện không có bệnh nhân nào có state = 0 (firstWaiting = nullptr).\n";

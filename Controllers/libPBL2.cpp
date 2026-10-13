@@ -331,8 +331,8 @@ string generateNext_id<SymptomPatient>(const LinkList<SymptomPatient> *list) {
     if (list && list->getHeader()) {
         LinkList<SymptomPatient>::Node *cur = list->getHeader()->next;
         while (cur != nullptr && cur->next != nullptr) {
-            string idStr = cur->info.getSP_id();
-            if (idStr.length() > 3 && idStr.substr(0, 3) == "SP_") {
+            string idStr = cur->info.getQP_id();
+            if (idStr.length() > 3 && (idStr.substr(0, 3) == "QP_" || idStr.substr(0, 3) == "SP_")) {
                 try {
                     int num = stoi(idStr.substr(3));
                     if (num > maxId) maxId = num;
@@ -342,7 +342,7 @@ string generateNext_id<SymptomPatient>(const LinkList<SymptomPatient> *list) {
         }
     }
     ostringstream oss;
-    oss << "SP_" << setfill('0') << setw(3) << (maxId + 1);
+    oss << "QP_" << setfill('0') << setw(3) << (maxId + 1);
     return oss.str();
 }
 
@@ -427,7 +427,7 @@ bool SaveToFile<QueuePatient, Queue>(const string &path, const Queue<QueuePatien
     if (!f.is_open())
         return false;
 
-    f << "SP_id  | Sp_id  | State\n";
+    f << "QP_id  | Sp_id  | State\n";
     f << "-------+--------+------\n";
 
     Queue<QueuePatient>::Node *tmp = queue->getHeader()->next;

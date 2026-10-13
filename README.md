@@ -74,8 +74,8 @@ pbl_2test/
 | **`Doctor`** | `Human` | `spId` (Chuyên khoa), `state`, `roomId`, `fee`, `rating` | Quản lý thông tin bác sĩ điều trị, chuyên khoa, phòng khám và trạng thái làm việc. |
 | **`Manager`** | `Human` | `username`, `password`, `role` (`ManagerRole`) | Quản lý tài khoản đăng nhập hệ thống và phân cấp vai trò (`Admin`, `Staff`...). |
 | **`Symptom`** | *Độc lập* | `S_id`, `sName`, `Sp_id` (Chuyên khoa), `sScore` (Điểm nặng) | Quản lý danh mục triệu chứng bệnh. Dùng để tra cứu (chỉ có getter và nạp từ file, không cho phép sửa đổi tùy tiện). |
-| **`SymptomPatient`** | *Độc lập* | `SP_id`, `S_id` (Danh sách triệu chứng: `S_001, S_002...`), `P_id`, `date` (`Date`) | Lưu thông tin lượt khám của bệnh nhân kèm danh sách các triệu chứng theo định dạng khối Java-like (`{ SP_id, S_id, P_id, Date },`). Tự động sinh mã `SP_xxx`. |
-| **`QueuePatient`** | *Độc lập* | `SP_id`, `Sp_id` (Chuyên khoa ưu tiên), `state` (0: Chờ, 1: Đã khám) | Đại diện cho một bệnh nhân trong hàng đợi khám. Nhận dữ liệu trực tiếp từ `SymptomPatient`. |
+| **`SymptomPatient`** | *Độc lập* | `QP_id` (Tham chiếu `QueuePatient`), `S_id` (Danh sách triệu chứng: `S_001, S_002...`), `P_id`, `date` (`Date`) | Lưu thông tin triệu chứng khám của bệnh nhân theo định dạng khối Java-like (`{ QP_id, S_id, P_id, Date },`). `QP_id` tham chiếu đến hàng đợi. |
+| **`QueuePatient`** | *Độc lập* | `QP_id` (Khóa chính), `Sp_id` (Chuyên khoa ưu tiên), `state` (0: Chờ, 1: Đã khám) | Đại diện cho một bệnh nhân trong hàng đợi khám. `QP_id` đóng vai trò khóa chính (Primary Key). |
 | **`Appointment`** | *Độc lập* | `Ap_id`, `P_id`, `D_id`, `Date`, `shift` | Quản lý thông tin lịch hẹn khám trước. |
 | **`Date`** | *Độc lập* | `day`, `month`, `year` | Xử lý ngày tháng năm, ép kiểu từ chuỗi `YYYY-MM-DD`, xuất định dạng hiển thị `DD/MM/YYYY`, lấy ngày giờ hiện tại hệ thống (`Date::now()`). |
 
@@ -111,7 +111,7 @@ pbl_2test/
 | `isAllowed` | `bool` | `const Manager &M, PermissionType Per, const LinkList<Permission> *list` | Kiểm tra tài khoản người dùng có quyền thực hiện thao tác hay không. |
 | `LoadFromFile<T, U>` | `U<T>*` | `const string &path` | Đọc dữ liệu từ file văn bản và nạp vào cấu trúc dữ liệu (`LinkList` hoặc `Queue`). |
 | `SaveToFile<T, U>` | `bool` | `const string &path, const U<T> *container` | Lưu toàn bộ nội dung từ cấu trúc dữ liệu ra file văn bản chuẩn hóa. |
-| `generateNext_id<T>` | `string` | `const LinkList<T> *list` | Tự động quét ID lớn nhất hiện có và sinh mã tiếp theo (`P_%03d` cho `Patient`, `SP_%03d` cho `SymptomPatient`). |
+| `generateNext_id<T>` | `string` | `const LinkList<T> *list` | Tự động quét ID lớn nhất hiện có và sinh mã tiếp theo (`P_%03d` cho `Patient`, `QP_%03d` cho `QueuePatient`/`SymptomPatient`). |
 | `utf8Length` | `size_t` | `const string &str` | Đếm số lượng ký tự hiển thị thực tế trong chuỗi UTF-8 (bỏ qua các continuation byte, đếm theo Unicode code point). |
 | `padRightUtf8` | `string` | `const string &str, size_t targetWidth` | Căn lề trái và đệm khoảng trắng chính xác theo số ký tự hiển thị UTF-8, khắc phục hoàn toàn lỗi lệch cột bảng do ký tự tiếng Việt có dấu. |
 
@@ -296,8 +296,8 @@ Mọi dòng trong `Data/Patient.txt` và hiển thị console đều được c�
        │
 [3. Tiếp nhận BN & Triệu chứng] (Menu 5)
        ├─ Hồ sơ: BN Cũ (tìm theo Mã BN / SĐT / CCCD) HOẶC BN Mới (tự sinh P_xxx)
-       ├─ Triệu chứng: Tự sinh SP_xxx ──> Chọn triệu chứng ──> Lưu vào spList
-       └─ Tự động vào Queue: Phân tích chuyên khoa ưu tiên (Sp_id) ──> Khởi tạo QueuePatient ──> enQueue(State = 0)
+       ├─ Triệu chứng & Khám: Tự sinh QP_xxx ──> Chọn triệu chứng ──> Lưu vào spList
+       └─ Tự động vào Queue: Phân tích chuyên khoa ưu tiên (Sp_id) ──> Khởi tạo QueuePatient (QP_id) ──> enQueue(State = 0)
        │
 [4. Quản lý Queue & Khám bệnh]
        ├─ [1] Xem trạng thái Queue & firstWaiting
