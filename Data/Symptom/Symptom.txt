@@ -1,0 +1,32 @@
+S_ID  | S_Name              | Sp_ID  | S_Score
+------+---------------------+--------+--------
+S_001 | Sốt                 | SP_001 | 5      
+S_002 | Mệt mỏi             | SP_001 | 3      
+S_003 | Chóng mặt           | SP_001 | 3      
+S_004 | Đau vết thương      | SP_002 | 5      
+S_005 | Sưng                | SP_002 | 4      
+S_006 | Đau sau chấn thương | SP_002 | 5      
+S_007 | Đau ngực            | SP_003 | 5      
+S_008 | Hồi hộp             | SP_003 | 5      
+S_009 | Phù chân            | SP_003 | 4      
+S_010 | Đau đầu             | SP_004 | 5      
+S_011 | Tê bì               | SP_004 | 5      
+S_012 | Run tay             | SP_004 | 4      
+S_013 | Đau họng            | SP_005 | 5      
+S_014 | Nghẹt mũi           | SP_005 | 5      
+S_015 | Đau tai             | SP_005 | 5      
+S_016 | Ho                  | SP_006 | 5      
+S_017 | Khó thở             | SP_006 | 5      
+S_018 | Khò khè             | SP_006 | 5      
+S_019 | Đau bụng            | SP_007 | 5      
+S_020 | Buồn nôn            | SP_007 | 4      
+S_021 | Tiêu chảy           | SP_007 | 5      
+S_022 | Đau khớp            | SP_008 | 5      
+S_023 | Đau lưng            | SP_008 | 5      
+S_024 | Cứng khớp           | SP_008 | 4      
+S_025 | Phát ban            | SP_009 | 5      
+S_026 | Ngứa da             | SP_009 | 5      
+S_027 | Mụn                 | SP_009 | 4      
+S_028 | Đau mắt             | SP_010 | 5      
+S_029 | Nhìn mờ             | SP_010 | 5      
+S_030 | Đỏ mắt              | SP_010 | 4      
