@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include "LinkList.h"
 
 class Symptom {
     private:
@@ -25,6 +26,17 @@ class Symptom {
         std::string getSName() const;
         std::string getSp_id() const;
         int getSScore() const;
+
+        void setS_id(std::string id);
+        void setSName(std::string name);
+        void setSp_id(std::string spId);
+        void setSScore(int score);
+
+        void save(std::ofstream &f) const;
+        std::string toString() const;
+        static Symptom loadFromString(const std::string &str);
+        static LinkList<Symptom>* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const LinkList<Symptom> *list);
 };
 
 #endif

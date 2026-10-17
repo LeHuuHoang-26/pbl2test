@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include "Date.h"
+#include "LinkList.h"
 
 class SymptomPatient {
     private:
@@ -34,6 +35,12 @@ class SymptomPatient {
         void addS_id(const std::string &id);
 
         void save(std::ofstream &f) const;
+
+        std::string toString() const;
+        static SymptomPatient loadFromString(const std::string &str);
+        static LinkList<SymptomPatient>* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const LinkList<SymptomPatient> *list);
+        static std::string generateNextId(const LinkList<SymptomPatient> *list);
 };
 
 #endif

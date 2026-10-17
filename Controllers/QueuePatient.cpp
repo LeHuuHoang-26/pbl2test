@@ -2,8 +2,10 @@
 #include "SymptomPatient.h"
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include "libPBL2.h"
+
 using namespace std;
 
 QueuePatient::QueuePatient()
@@ -63,16 +65,87 @@ void QueuePatient::setQP_id(string QP_id) { this->QP_id = QP_id; }
 void QueuePatient::setSp_id(string Sp_id) { this->Sp_id = Sp_id; }
 void QueuePatient::setState(int state) { this->state = state; }
 
-void QueuePatient::setFromSymptomPatient(const SymptomPatient &sp, std::string Sp_id, int state) {
+void QueuePatient::setFromSymptomPatient(const SymptomPatient &sp, string Sp_id, int state) {
     this->QP_id = sp.getQP_id();
-    if (!Sp_id.empty()) {
-        this->Sp_id = Sp_id;
-    }
+    this->Sp_id = Sp_id;
     this->state = state;
 }
 
 void QueuePatient::save(std::ofstream &f) const {
-    f << left << setw(6) << QP_id << " | "
-      << setw(6) << Sp_id << " | "
-      << state << "\n";
+    f << toString() << "\n";
+}
+
+string QueuePatient::toString() const {
+    return libPBL2::padRightUtf8(QP_id, 6) + " | "
+         + libPBL2::padRightUtf8(Sp_id, 6) + " | "
+         + to_string(state);
+}
+
+QueuePatient QueuePatient::loadFromString(const string &str) {
+    if (str.empty()) return QueuePatient();
+    stringstream ss(str);
+    string qpId, spId, stateStr;
+
+    if (!getline(ss, qpId, '|') ||
+        !getline(ss, spId, '|') ||
+        !getline(ss, stateStr)) {
+        return QueuePatient();
+    }
+
+    libPBL2::trim(qpId);
+    libPBL2::trim(spId);
+    libPBL2::trim(stateStr);
+
+    if (qpId.empty()) return QueuePatient();
+    int st = (!stateStr.empty() ? stoi(stateStr) : 0);
+
+    return QueuePatient(qpId, spId, st);
+}
+
+Queue<QueuePatient>* QueuePatient::loadFromFile(const string &path) {
+    Queue<QueuePatient> *queue = new Queue<QueuePatient>;
+    if (!queue) return nullptr;
+
+    ifstream f(path);
+    if (!f.is_open()) {
+        delete queue;
+        return nullptr;
+    }
+
+    string tmp;
+    getline(f, tmp); // Bỏ qua tiêu đề
+    getline(f, tmp); // Bỏ qua dòng phân cách
+
+    while (true) {
+        QueuePatient QP(f);
+        if (QP.isDefault())
+            break;
+        queue->enQueue(QP);
+    }
+    f.close();
+    queue->updateFirstWaiting();
+    return queue;
+}
+
+bool QueuePatient::saveToFile(const string &path, const Queue<QueuePatient> *queue) {
+    if (!queue || queue->getHeader() == nullptr)
+        return false;
+
+    ofstream f(path);
+    if (!f.is_open())
+        return false;
+
+    f << "QP_id  | Sp_id  | State\n";
+    f << "-------+--------+------\n";
+
+    Queue<QueuePatient>::Node *tmp = queue->getHeader()->next;
+    while (tmp != nullptr && tmp != queue->getFooter()) {
+        if (tmp->data && !tmp->data->isDefault()) {
+            tmp->data->save(f);
+        }
+        tmp = tmp->next;
+    }
+
+    f.close();
+    return true;
 }

@@ -1,6 +1,8 @@
 #ifndef PATIENT_H
 #define PATIENT_H
+
 #include "human.h"
+#include "LinkList.h"
 #include <string>
 #include <fstream>
 
@@ -21,6 +23,12 @@ class Patient: public Human {
         void setCCCD(std::string CCCD);
 
         void save(std::ofstream &f) const;
+
+        std::string toString() const;
+        static Patient loadFromString(const std::string &str);
+        static LinkList<Patient>* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const LinkList<Patient> *list);
+        static std::string generateNextId(const LinkList<Patient> *list);
 };
 
 #endif

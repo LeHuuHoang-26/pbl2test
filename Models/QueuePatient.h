@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include "Queue.h"
 
 class SymptomPatient;
 
@@ -33,6 +34,11 @@ class QueuePatient {
         void setFromSymptomPatient(const SymptomPatient &sp, std::string Sp_id = "", int state = 0);
 
         void save(std::ofstream &f) const;
+
+        std::string toString() const;
+        static QueuePatient loadFromString(const std::string &str);
+        static Queue<QueuePatient>* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const Queue<QueuePatient> *queue);
 };
 
 #endif

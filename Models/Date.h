@@ -9,8 +9,11 @@ class Date {
         int day;
         int month;
         int year;
+        int hour;
+        int minute;
+
     public:
-        Date(int day = 0, int month = 0, int year = 0);
+        Date(int day = 0, int month = 0, int year = 0, int hour = 0, int minute = 0);
         Date(const Date &D);
         Date &operator=(const Date &D) = default;
         ~Date();
@@ -18,17 +21,22 @@ class Date {
         int getDay() const;
         int getMonth() const;
         int getYear() const;
+        int getHour() const;
+        int getMinute() const;
+
         void setDay(int d);
         void setMonth(int m);
         void setYear(int y);
+        void setHour(int h);
+        void setMinute(int min);
+
         bool isDefault() const;
 
         std::string toString() const;
-        std::string toDisplayString() const;
-        static Date fromString(const std::string &str);
+        static Date loadFromString(const std::string &str);
         static Date now();
 
-        void insert(int dd, int mm, int yyyy);
+        void insert(int dd, int mm, int yyyy, int hh = 0, int min = 0);
         void show() const;
         friend std::istream &operator >> (std::istream &in, Date &D);
         friend std::ostream &operator << (std::ostream &out, const Date &D);

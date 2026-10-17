@@ -17,7 +17,9 @@
 #include "SymptomPatient.h"
 #include "Doctor.h"
 #include "QueuePatient.h"
+#include "Appointment.h"
 #include "Date.h"
+#include "Permission.h"
 #include "LinkList.h"
 #include "Queue.h"
 
@@ -68,7 +70,6 @@ string nhapThongTinBenhNhan(LinkList<Patient> *patientList) {
     }
 
     if (loai == 1) {
-
         cout << "\nNhập Mã BN (P_xxx), hoặc Số điện thoại, hoặc CCCD: ";
         string keyword;
         getline(cin, keyword);
@@ -100,30 +101,21 @@ string nhapThongTinBenhNhan(LinkList<Patient> *patientList) {
             cout << "   - Giới tính    : " << (foundPatient->getGender() ? "Nam" : "Nữ") << "\n";
             cout << "   - Tuổi         : " << foundPatient->getAge() << "\n";
             cout << "   - CCCD         : " << foundPatient->getCCCD() << "\n";
+            cout << ">> Xác nhận sử dụng hồ sơ bệnh nhân này để tiếp nhận khám bệnh.\n";
             return foundPatient->getID();
         } else {
-            cout << "\n[THÔNG BÁO] Không tìm thấy bệnh nhân với thông tin '" << keyword << "'!\n";
-            cout << "Bạn có muốn tạo hồ sơ bệnh nhân MỚI không? (1: Có, 0: Không): ";
-            int tiepTuc;
-            if (!(cin >> tiepTuc) || tiepTuc != 1) {
-                clearInputBuffer();
-                clearScreen();
-                return "";
-            }
-            clearInputBuffer();
-            clearScreen();
-            loai = 2;
+            cout << "\n[THÔNG BÁO] Không tìm thấy bệnh nhân nào khớp với từ khóa: \"" << keyword << "\"\n";
+            cout << ">> Gợi ý: Hãy chọn [2] ở lần tiếp theo để đăng ký hồ sơ bệnh nhân mới.\n";
+            return "";
         }
-    }
-
-    if (loai == 2) {
-
-        string newId = libPBL2::generateNext_id<Patient>(patientList);
-        cout << "\n--- ĐĂNG KÝ HỒ SƠ BỆNH NHÂN MỚI ---\n";
-        cout << ">> Mã bệnh nhân được cấp mới: " << newId << "\n";
+    } else if (loai == 2) {
+        string nextPid = Patient::generateNextId(patientList);
+        cout << "\n>> ĐĂNG KÝ HỒ SƠ BỆNH NHÂN MỚI:\n";
+        cout << ">> Hệ thống tự động cấp Mã Bệnh Nhân: [" << nextPid << "]\n";
 
         string fullName, phone, cccd;
-        int genderInput = 1, age = 0;
+        int genderChoice = 1;
+        int age = 0;
 
         cout << "Nhập Họ và tên: ";
         getline(cin, fullName);
@@ -135,137 +127,149 @@ string nhapThongTinBenhNhan(LinkList<Patient> *patientList) {
         filterNewline(phone);
         libPBL2::trim(phone);
 
-        cout << "Nhập Giới tính (1: Nam, 0: Nữ) [Mặc định 1]: ";
-        string genderStr;
-        getline(cin, genderStr);
-        filterNewline(genderStr);
-        libPBL2::trim(genderStr);
-        if (!genderStr.empty()) {
-            try { genderInput = stoi(genderStr); } catch (...) { genderInput = 1; }
+        cout << "Chọn Giới tính (1: Nam, 0: Nữ): ";
+        while (!(cin >> genderChoice) || (genderChoice != 0 && genderChoice != 1)) {
+            clearInputBuffer();
+            cout << "Vui lòng nhập 1 (Nam) hoặc 0 (Nữ): ";
         }
+        clearInputBuffer();
 
         cout << "Nhập Tuổi: ";
-        string ageStr;
-        getline(cin, ageStr);
-        filterNewline(ageStr);
-        libPBL2::trim(ageStr);
-        if (!ageStr.empty()) {
-            try { age = stoi(ageStr); } catch (...) { age = 0; }
+        while (!(cin >> age) || age <= 0 || age > 130) {
+            clearInputBuffer();
+            cout << "Tuổi không hợp lệ. Vui lòng nhập lại: ";
         }
+        clearInputBuffer();
 
-        cout << "Nhập Căn cước công dân (CCCD): ";
+        cout << "Nhập CCCD (12 chữ số): ";
         getline(cin, cccd);
         filterNewline(cccd);
         libPBL2::trim(cccd);
 
-        Patient newPatient(newId, fullName, phone, (genderInput == 1), age, cccd);
+        if (fullName.empty() || phone.empty() || cccd.empty()) {
+            cout << "[LỖI] Các trường Họ tên, Số điện thoại và CCCD không được để trống!\n";
+            return "";
+        }
+
+        Patient newPatient(nextPid, fullName, phone, (genderChoice == 1), age, cccd);
         patientList->insert(newPatient);
 
-        cout << "\n[OK] Đã đăng ký thành công hồ sơ bệnh nhân mới: " << newId << " - " << fullName << "\n";
-        return newId;
+        cout << "\n[THÀNH CÔNG] Đã lưu thông tin bệnh nhân mới vào danh sách bộ nhớ:\n";
+        cout << "   - Mã BN (P_ID) : " << newPatient.getID() << "\n";
+        cout << "   - Họ và tên    : " << newPatient.getfullName() << "\n";
+        cout << "   - CCCD         : " << newPatient.getCCCD() << "\n";
+        return nextPid;
+    } else {
+        cout << "[LỖI] Lựa chọn không hợp lệ!\n";
+        return "";
     }
-
-    return "";
 }
 
-void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *spList, const string &patientId, Queue<QueuePatient> *queuePatient = nullptr) {
-    if (!symptomList || !symptomList->getHeader() || !spList) {
-        cout << "[LỖI] Dữ liệu triệu chứng hoặc lượt khám chưa sẵn sàng!\n";
+void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *spList, const string &patientId, Queue<QueuePatient> *queuePatient) {
+    if (!symptomList || !spList) {
+        cout << "[LỖI] Danh sách triệu chứng chưa được khởi tạo!\n";
         return;
     }
 
-    clearScreen();
-    cout << "\n================ TIẾP NHẬN BỆNH NHÂN ================\n";
-    cout << "Mã bệnh nhân: " << patientId << "\n";
-    cout << "\n--- DANH SÁCH TRIỆU CHỨNG ---\n";
+    string qpId = SymptomPatient::generateNextId(spList);
+    Date currentDate = Date::now();
 
-    int totalSymptoms = 0;
-    LinkList<Symptom>::Node *curSym = symptomList->getHeader()->next;
-    while (curSym != nullptr && curSym->next != nullptr) {
-        if (!curSym->info.isDefault()) {
-            totalSymptoms++;
-            cout << "[" << totalSymptoms << "] "
-                 << libPBL2::padRightUtf8(curSym->info.getSName(), 25)
-                 << " (Khoa: " << curSym->info.getSp_id()
-                 << " | Điểm: " << curSym->info.getSScore() << ")\n";
-        }
-        curSym = curSym->next;
-    }
+    cout << "\n================= CHỌN TRIỆU CHỨNG KHÁM BỆNH =================\n";
+    cout << "Mã hàng đợi tự sinh : " << qpId << "\n";
+    cout << "Mã bệnh nhân        : " << patientId << "\n";
+    cout << "Thời gian tiếp nhận : " << currentDate.toString() << "\n";
+    cout << "--------------------------------------------------------------\n";
 
-    if (totalSymptoms == 0) {
-        cout << "[THÔNG BÁO] Danh sách triệu chứng trống!\n";
-        return;
-    }
-    cout << "[0] >> XÁC NHẬN (CONFIRM) VÀ KẾT THÚC CHỌN <<\n\n";
-
-    LinkList<Symptom> trieuChungDaChon;
+    LinkList<Symptom> chosenSymptoms;
     int countChosen = 0;
-    int choice;
 
     while (true) {
-        cout << "Chọn mã triệu chứng (nhập 0 để kết thúc): ";
+        cout << "\nDanh sách các triệu chứng khả dụng trong hệ thống:\n";
+        cout << left << setw(8) << "STT" << setw(10) << "Mã S_ID" << setw(25) << "Tên Triệu Chứng" << setw(10) << "Khoa Sp_ID" << setw(8) << "Điểm\n";
+        cout << "--------------------------------------------------------------------\n";
+
+        LinkList<Symptom>::Node *cur = symptomList->getHeader()->next;
+        int idx = 1;
+        while (cur != nullptr && cur->next != nullptr) {
+            if (!cur->info.isDefault()) {
+                cout << left << setw(8) << idx++
+                     << setw(10) << cur->info.getS_id()
+                     << setw(25) << cur->info.getSName()
+                     << setw(10) << cur->info.getSp_id()
+                     << setw(8)  << cur->info.getSScore() << "\n";
+            }
+            cur = cur->next;
+        }
+
+        cout << "--------------------------------------------------------------------\n";
+        cout << "Nhập STT của triệu chứng muốn chọn (Nhập 0 để KẾT THÚC chọn): ";
+        int choice;
         if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(1000, '\n');
-            cout << "Vui lòng nhập số hợp lệ!\n";
+            clearInputBuffer();
+            cout << "[LỖI] Vui lòng nhập số!\n";
             continue;
         }
 
         if (choice == 0) {
             if (countChosen == 0) {
-                cout << "Chưa chọn triệu chứng nào, vui lòng chọn ít nhất 1 triệu chứng!\n";
+                cout << "[CẢNH BÁO] Bạn chưa chọn triệu chứng nào. Tiếp tục hủy? (1: Hủy tiếp nhận, 2: Chọn tiếp): ";
+                int cancelChoice;
+                if (cin >> cancelChoice && cancelChoice == 1) {
+                    clearInputBuffer();
+                    cout << ">> Đã hủy tiếp nhận triệu chứng.\n";
+                    return;
+                }
+                clearInputBuffer();
                 continue;
             }
-            clearInputBuffer();
-            clearScreen();
             break;
         }
 
-        if (choice >= 1 && choice <= totalSymptoms) {
-
-            LinkList<Symptom>::Node *findNode = symptomList->getHeader()->next;
-            int curIdx = 1;
-            Symptom selected;
-            while (findNode != nullptr && findNode->next != nullptr) {
-                if (!findNode->info.isDefault()) {
-                    if (curIdx == choice) {
-                        selected = findNode->info;
-                        break;
-                    }
-                    curIdx++;
-                }
-                findNode = findNode->next;
-            }
-
-            bool daTonTai = false;
-            LinkList<Symptom>::Node *chkNode = trieuChungDaChon.getHeader()->next;
-            while (chkNode != nullptr && chkNode->next != nullptr) {
-                if (chkNode->info.getS_id() == selected.getS_id()) {
-                    daTonTai = true;
+        cur = symptomList->getHeader()->next;
+        int curIdx = 1;
+        Symptom selectedSymptom;
+        bool found = false;
+        while (cur != nullptr && cur->next != nullptr) {
+            if (!cur->info.isDefault()) {
+                if (curIdx == choice) {
+                    selectedSymptom = cur->info;
+                    found = true;
                     break;
                 }
-                chkNode = chkNode->next;
+                curIdx++;
+            }
+            cur = cur->next;
+        }
+
+        if (found) {
+            bool duplicate = false;
+            LinkList<Symptom>::Node *cNode = chosenSymptoms.getHeader()->next;
+            while (cNode != nullptr && cNode->next != nullptr) {
+                if (cNode->info.getS_id() == selectedSymptom.getS_id()) {
+                    duplicate = true;
+                    break;
+                }
+                cNode = cNode->next;
             }
 
-            if (daTonTai) {
-                cout << "-> Triệu chứng [" << selected.getSName() << "] đã được chọn trước đó!\n";
+            if (duplicate) {
+                cout << "[LƯU Ý] Triệu chứng này đã được chọn trước đó!\n";
             } else {
-                trieuChungDaChon.insert(selected);
+                chosenSymptoms.insert(selectedSymptom);
                 countChosen++;
-                cout << "-> Đã thêm: " << selected.getSName() << "\n";
+                cout << "[ĐÃ CHỌN] " << selectedSymptom.getS_id() << " - " << selectedSymptom.getSName()
+                     << " (Khoa: " << selectedSymptom.getSp_id() << ", Điểm: " << selectedSymptom.getSScore() << ")\n";
             }
         } else {
-            cout << "Lựa chọn không hợp lệ, vui lòng chọn lại!\n";
+            cout << "[LỖI] Số thứ tự không nằm trong danh sách!\n";
         }
     }
 
-    Date currentDate = Date::now();
-    string qpId = libPBL2::generateNext_id(spList);
-
-    string primarySpId = "";
-    int highestScore = -1;
     string allS_ids = "";
-    LinkList<Symptom>::Node *pNode = trieuChungDaChon.getHeader()->next;
+    int highestScore = -1;
+    string primarySpId = "";
+
+    LinkList<Symptom>::Node *pNode = chosenSymptoms.getHeader()->next;
     while (pNode != nullptr && pNode->next != nullptr) {
         if (!pNode->info.isDefault()) {
             if (!allS_ids.empty()) allS_ids += ", ";
@@ -285,8 +289,7 @@ void tiepNhanBenhNhan(LinkList<Symptom> *symptomList, LinkList<SymptomPatient> *
     cout << "\n================ XÁC NHẬN THÀNH CÔNG ================\n";
     cout << "Mã hàng đợi (QP_id)   : " << qpId << "\n";
     cout << "Mã bệnh nhân          : " << patientId << "\n";
-    cout << "Ngày tiếp nhận (Date) : " << currentDate.toDisplayString()
-         << " (Định dạng file: " << currentDate.toString() << ")\n";
+    cout << "Ngày tiếp nhận (Date) : " << currentDate.toString() << "\n";
     cout << "Số triệu chứng đã thêm: " << countChosen << "\n";
     if (queuePatient && !primarySpId.empty()) {
         queuePatient->enQueue(QueuePatient(latestSP, primarySpId, 0));
@@ -383,6 +386,35 @@ void inToanBoQueue(Queue<QueuePatient> *q) {
     cout << "==============================================================\n";
 }
 
+void inDanhSachLichHen(LinkList<Appointment> *appList) {
+    if (!appList || !appList->getHeader()) {
+        cout << "[LỖI] Danh sách lịch hẹn chưa được tải hoặc rỗng!\n";
+        return;
+    }
+
+    cout << "\n================= DANH SÁCH LỊCH HẸN KHÁM (APPOINTMENT) =================\n";
+    cout << left << setw(8) << "STT" << setw(10) << "A_ID" << setw(10) << "P_ID"
+         << setw(10) << "D_ID" << setw(20) << "Ngày đặt (Set)"
+         << setw(20) << "Ngày hẹn (Get)" << setw(12) << "Trạng thái" << "\n";
+    cout << "--------------------------------------------------------------------------------\n";
+
+    int stt = 1;
+    LinkList<Appointment>::Node *cur = appList->getHeader()->next;
+    while (cur != nullptr && cur->next != nullptr) {
+        if (!cur->info.isDefault()) {
+            cout << left << setw(8) << stt++
+                 << setw(10) << cur->info.getId()
+                 << setw(10) << cur->info.getPatientId()
+                 << setw(10) << cur->info.getDoctorId()
+                 << setw(20) << cur->info.getDateSet().toString()
+                 << setw(20) << cur->info.getDateGet().toString()
+                 << setw(12) << (cur->info.getState() == 1 ? "Hoàn thành" : "Chờ khám") << "\n";
+        }
+        cur = cur->next;
+    }
+    cout << "================================================================================\n";
+}
+
 void testDeQueue(Queue<QueuePatient> *q) {
     if (!q) return;
 
@@ -409,24 +441,98 @@ void testDeQueue(Queue<QueuePatient> *q) {
     }
 }
 
-int main() {
+void chayKiemThuHeThong() {
+    cout << "\n================ CHẠY KIỂM THỬ ĐỒNG BỘ HỆ THỐNG ================\n";
 
+    // 1. Kiểm thử Date (Getters / Setters / toString / fromString / now)
+    cout << "[TEST 1] Kiểm tra thư viện Date:\n";
+    Date d(18, 12, 2025, 8, 35);
+    cout << "   - Khởi tạo: " << d.toString() << "\n";
+    cout << "   - getDay()    : " << d.getDay() << "\n";
+    cout << "   - getMonth()  : " << d.getMonth() << "\n";
+    cout << "   - getYear()   : " << d.getYear() << "\n";
+    cout << "   - getHour()   : " << d.getHour() << "\n";
+    cout << "   - getMinute() : " << d.getMinute() << "\n";
+
+    d.setHour(14);
+    d.setMinute(45);
+    cout << "   - Sau khi setHour(14), setMinute(45): " << d.toString() << "\n";
+    cout << "   - toString() format: " << d.toString() << "\n";
+
+    Date parsedD = Date::loadFromString("2026-01-10 15:30");
+    cout << "   - loadFromString('2026-01-10 15:30'): " << parsedD.toString()
+         << " (H=" << parsedD.getHour() << ", M=" << parsedD.getMinute() << ")\n";
+
+    Date nowD = Date::now();
+    cout << "   - Date::now(): " << nowD.toString() << "\n";
+    cout << "   => [PASSED] Kiểm tra Date thành công!\n\n";
+
+    // 2. Kiểm thử toString và loadFromString của các đối tượng
+    cout << "[TEST 2] Kiểm tra toString() và loadFromString() trên từng đối tượng:\n";
+
+    // Patient
+    Patient pTest = Patient::loadFromString("P_999 | Nguyễn Văn Test | 0988776655 | 1 | 25 | 048099009999");
+    cout << "   - Patient::loadFromString -> ID: " << pTest.getID() << ", Tên: " << pTest.getfullName() << "\n";
+    cout << "   - Patient::toString       : " << pTest.toString() << "\n";
+
+    // Doctor
+    Doctor docTest = Doctor::loadFromString("D_999 | Bác Sĩ Test | 0901234567 | 1 | 40 | Sp_001 | 1 | Room_999 | 300000.0 | 4.9");
+    cout << "   - Doctor::loadFromString  -> ID: " << docTest.getID() << ", Khoa: " << docTest.getSpId() << "\n";
+    cout << "   - Doctor::toString        : " << docTest.toString() << "\n";
+
+    // Manager
+    Manager mTest = Manager::loadFromString("MA_999 | Test Admin | 0911223344 | 1 | 30 | AdminTest | PassTest123 | 3 | 1");
+    cout << "   - Manager::loadFromString -> ID: " << mTest.getID() << ", Role: " << Manager::roleToString(mTest.getRole()) << "\n";
+    cout << "   - Manager::toString       : " << mTest.toString() << "\n";
+
+    // QueuePatient
+    QueuePatient qpTest = QueuePatient::loadFromString("QP_999 | Sp_001 | 0");
+    cout << "   - QueuePatient::loadFromString -> QP_id: " << qpTest.getQP_id() << ", State: " << qpTest.getState() << "\n";
+    cout << "   - QueuePatient::toString       : " << qpTest.toString() << "\n";
+
+    // Symptom
+    Symptom symTest = Symptom::loadFromString("S_999 | Đau đầu test | Sp_002 | 4");
+    cout << "   - Symptom::loadFromString -> S_id: " << symTest.getS_id() << ", Tên: " << symTest.getSName() << "\n";
+    cout << "   - Symptom::toString       : " << symTest.toString() << "\n";
+
+    // Appointment
+    Appointment appTest = Appointment::loadFromString("A_999 | P_999 | D_999 | 2025-12-18 08:35 | 2025-12-20 09:00 | 1");
+    cout << "   - Appointment::loadFromString -> ID: " << appTest.getId()
+         << ", DateSet: " << appTest.getDateSet().toString()
+         << ", DateGet: " << appTest.getDateGet().toString() << "\n";
+    cout << "   - Appointment::toString       : " << appTest.toString() << "\n";
+
+    // Permission
+    Permission permTest = Permission::loadFromString("MA_999 | 01");
+    cout << "   - Permission::loadFromString  -> MA_id: " << permTest.MA_id
+         << ", Per: " << Permission::permissionTypeToString(permTest.Per_id) << "\n";
+    cout << "   - Permission::toString        : " << permTest.toString() << "\n";
+
+    cout << "   => [PASSED] Kiểm tra toString() và loadFromString() trên toàn bộ đối tượng thành công!\n";
+    cout << "================================================================\n";
+}
+
+int main() {
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
 
     cout << "===== KHỞI ĐỘNG HỆ THỐNG VÀ TẢI DỮ LIỆU =====\n";
 
-    LinkList<Manager> *ManagerList = libPBL2::LoadFromFile<Manager>("Data/Manager.txt");
-    LinkList<libPBL2::Permission> *PermissionList = libPBL2::LoadFromFile<libPBL2::Permission>("Data/PermissionManager.txt");
-    LinkList<Patient> *patientList = libPBL2::LoadFromFile<Patient>("Data/Patient.txt");
-    LinkList<Symptom> *symptomList = libPBL2::LoadFromFile<Symptom>("Data/Symptom/Symptom.txt");
-    LinkList<SymptomPatient> *spList = libPBL2::LoadFromFile<SymptomPatient>("Data/Symptom/SymptomPatient.txt");
-    LinkList<Doctor> *doctorList = libPBL2::LoadFromFile<Doctor>("Data/Doctor/Doctor.txt");
-    Queue<QueuePatient> *queuePatient = libPBL2::LoadFromFile<QueuePatient, Queue>("Data/QueuePatient.txt");
+    LinkList<Manager> *ManagerList = Manager::loadFromFile("Data/Manager.txt");
+    LinkList<Permission> *PermissionList = Permission::loadFromFile("Data/PermissionManager.txt");
+    LinkList<Patient> *patientList = Patient::loadFromFile("Data/Patient.txt");
+    LinkList<Symptom> *symptomList = Symptom::loadFromFile("Data/Symptom/Symptom.txt");
+    LinkList<SymptomPatient> *spList = SymptomPatient::loadFromFile("Data/Symptom/SymptomPatient.txt");
+    LinkList<Doctor> *doctorList = Doctor::loadFromFile("Data/Doctor/Doctor.txt");
+    Queue<QueuePatient> *queuePatient = QueuePatient::loadFromFile("Data/QueuePatient.txt");
+    LinkList<Appointment> *appointmentList = Appointment::loadFromFile("Data/Appointment/Appointment.txt");
 
     if (!ManagerList) {
         cout << "[LỖI] Không thể đọc file Data/Manager.txt!\n";
         return 1;
+    }
+    if (!PermissionList) {
+        cout << "[LỖI] Không thể đọc file Data/PermissionManager.txt!\n";
     }
     if (!patientList) {
         cout << "[LỖI] Không thể đọc file Data/Patient.txt!\n";
@@ -443,47 +549,58 @@ int main() {
     if (!queuePatient) {
         cout << "[LỖI] Không thể đọc file Data/QueuePatient.txt!\n";
     }
+    if (!appointmentList) {
+        cout << "[LỖI] Không thể đọc file Data/Appointment/Appointment.txt!\n";
+    }
 
-    cout << "Tải dữ liệu hoàn tất.\n\n";
+    cout << ">> Tải toàn bộ dữ liệu thành công qua các phương thức loadFromFile của từng đối tượng!\n\n";
 
-    bool isLoginSuccess = false;
     Manager currentManager;
+    bool isLoginSuccess = false;
 
-    while (!isLoginSuccess) {
-        cout << "===== ĐĂNG NHẬP HỆ THỐNG =====\n";
-        cout << "(Gợi ý tài khoản admin: HoangMA001 / HoangMA001 | Nhập '0' để dừng)\n";
-        string username, password;
-        cout << "Username: ";
-        if (!(cin >> username)) break;
-        filterNewline(username);
-        libPBL2::trim(username);
-        if (username == "0") break;
+    while (true) {
+        cout << "================ ĐĂNG NHẬP HỆ THỐNG ================\n";
+        cout << "(Nhập 0 ở Tên đăng nhập để dừng hệ thống)\n";
+        string u, p;
+        cout << "Tên đăng nhập (Username): ";
+        if (!getline(cin, u)) {
+            break;
+        }
+        filterNewline(u);
+        libPBL2::trim(u);
 
-        cout << "Password: ";
-        if (!(cin >> password)) break;
-        filterNewline(password);
-        libPBL2::trim(password);
+        if (u == "0") {
+            cout << ">> Hủy đăng nhập. Dừng chương trình!\n";
+            break;
+        }
 
-        clearInputBuffer();
+        cout << "Mật khẩu (Password): ";
+        if (!getline(cin, p)) {
+            break;
+        }
+        filterNewline(p);
+        libPBL2::trim(p);
 
-        LinkList<Manager>::Node *tmpNode = ManagerList->getHeader()->next;
-        while (tmpNode != nullptr && tmpNode->next != nullptr) {
-            if (tmpNode->info.isValid(username, password)) {
-                isLoginSuccess = true;
-                currentManager = tmpNode->info;
-                break;
+        LinkList<Manager>::Node *tmp = ManagerList->getHeader()->next;
+        while (tmp != nullptr && tmp->next != nullptr) {
+            if (!tmp->info.isDefault()) {
+                if (tmp->info.isValid(u, p)) {
+                    currentManager = tmp->info;
+                    isLoginSuccess = true;
+                    break;
+                }
             }
-            tmpNode = tmpNode->next;
+            tmp = tmp->next;
         }
 
         if (isLoginSuccess) {
             clearScreen();
             cout << ">> Đăng nhập thành công! Xin chào: " << currentManager.getID() << "\n";
-            cout << ">> Vai trò (Role): " << libPBL2::toStr(currentManager.getRole()) << "\n";
+            cout << ">> Vai trò (Role): " << Manager::roleToString(currentManager.getRole()) << "\n";
             break;
         } else {
             clearScreen();
-            cout << "[LỖI] Tài khoản hoặc mật khẩu không chính xác! Vui lòng thử lại.\n\n";
+            cout << "[LỖI] Sai Tên đăng nhập hoặc Mật khẩu! Vui lòng thử lại.\n\n";
         }
     }
 
@@ -496,8 +613,10 @@ int main() {
             cout << "[3] Xem toàn bộ bản ghi trong Queue (Lịch sử + Đang chờ)\n";
             cout << "[4] Gọi khám bệnh nhân (deQueue: chuyển State 0 -> 1 & dịch firstWaiting)\n";
             cout << "[5] Tiếp nhận bệnh nhân (Hồ sơ cũ/mới -> Triệu chứng -> Vào Queue)\n";
-            cout << "[6] Lưu toàn bộ dữ liệu (Patient, SymptomPatient, QueuePatient)\n";
+            cout << "[6] Lưu toàn bộ dữ liệu (Patient, SymptomPatient, QueuePatient, Appointment)\n";
             cout << "[7] Quét & cập nhật lại con trỏ firstWaiting (updateFirstWaiting)\n";
+            cout << "[8] Xem danh sách lịch hẹn khám (Appointment)\n";
+            cout << "[9] Chạy kiểm thử tự động (Unit Test: Date, toString, loadFromString, Load/Save)\n";
             cout << "[0] Dừng chương trình (Thoát)\n";
             cout << "========================================================================\n";
             cout << "Lựa chọn của bạn: ";
@@ -526,13 +645,12 @@ int main() {
                     testDeQueue(queuePatient);
                     break;
                 case 5: {
-                    libPBL2::PermissionType requiredPer = libPBL2::PermissionType::Per_01;
+                    PermissionType requiredPer = PermissionType::Per_01;
                     if (libPBL2::isAllowed(currentManager, requiredPer, PermissionList)) {
                         cout << "\n>> Quyền hợp lệ: Được phép thực hiện tiếp nhận bệnh nhân.\n";
 
                         string patientId = nhapThongTinBenhNhan(patientList);
                         if (!patientId.empty()) {
-
                             tiepNhanBenhNhan(symptomList, spList, patientId, queuePatient);
                             cout << "\n>> Tiếp nhận bệnh nhân [" << patientId << "] thành công và đã đưa vào hàng đợi khám!\n";
                             cout << ">> Gợi ý: Hãy chọn chức năng [4] để gọi khám hoặc chọn [6] để lưu dữ liệu khi hoàn tất.\n";
@@ -544,9 +662,10 @@ int main() {
                 }
                 case 6: {
                     cout << "\n================ LƯU TOÀN BỘ DỮ LIỆU HỆ THỐNG ================\n";
-                    bool pOk = libPBL2::SaveToFile<Patient>("Data/Patient.txt", patientList);
-                    bool spOk = libPBL2::SaveToFile<SymptomPatient>("Data/Symptom/SymptomPatient.txt", spList);
-                    bool qOk = libPBL2::SaveToFile<QueuePatient, Queue>("Data/QueuePatient.txt", queuePatient);
+                    bool pOk = Patient::saveToFile("Data/Patient.txt", patientList);
+                    bool spOk = SymptomPatient::saveToFile("Data/Symptom/SymptomPatient.txt", spList);
+                    bool qOk = QueuePatient::saveToFile("Data/QueuePatient.txt", queuePatient);
+                    bool aOk = Appointment::saveToFile("Data/Appointment/Appointment.txt", appointmentList);
 
                     if (pOk)  cout << "[OK] Đã lưu danh sách bệnh nhân vào Data/Patient.txt\n";
                     else      cout << "[LỖI] Lưu file Data/Patient.txt thất bại!\n";
@@ -557,8 +676,11 @@ int main() {
                     if (qOk)  cout << "[OK] Đã lưu hàng đợi vào Data/QueuePatient.txt\n";
                     else      cout << "[LỖI] Lưu file Data/QueuePatient.txt thất bại!\n";
 
-                    if (pOk && spOk && qOk) {
-                        cout << ">> Toàn bộ dữ liệu (Patient, SymptomPatient, QueuePatient) đã được lưu thành công!\n";
+                    if (aOk)  cout << "[OK] Đã lưu lịch hẹn vào Data/Appointment/Appointment.txt\n";
+                    else      cout << "[LỖI] Lưu file Data/Appointment/Appointment.txt thất bại!\n";
+
+                    if (pOk && spOk && qOk && aOk) {
+                        cout << ">> Toàn bộ dữ liệu hệ thống đã được lưu thành công!\n";
                     }
                     cout << "==============================================================\n";
                     break;
@@ -573,13 +695,22 @@ int main() {
                     }
                     break;
                 }
+                case 8: {
+                    inDanhSachLichHen(appointmentList);
+                    break;
+                }
+                case 9: {
+                    chayKiemThuHeThong();
+                    break;
+                }
                 case 0: {
                     cout << "\nBạn có muốn lưu lại toàn bộ dữ liệu trước khi thoát? (1: Có, 0: Không): ";
                     int saveChoice = 0;
                     if (cin >> saveChoice && saveChoice == 1) {
-                        libPBL2::SaveToFile<Patient>("Data/Patient.txt", patientList);
-                        libPBL2::SaveToFile<SymptomPatient>("Data/Symptom/SymptomPatient.txt", spList);
-                        libPBL2::SaveToFile<QueuePatient, Queue>("Data/QueuePatient.txt", queuePatient);
+                        Patient::saveToFile("Data/Patient.txt", patientList);
+                        SymptomPatient::saveToFile("Data/Symptom/SymptomPatient.txt", spList);
+                        QueuePatient::saveToFile("Data/QueuePatient.txt", queuePatient);
+                        Appointment::saveToFile("Data/Appointment/Appointment.txt", appointmentList);
                         cout << "[OK] Đã tự động lưu dữ liệu trước khi thoát.\n";
                     }
                     clearInputBuffer();
@@ -589,7 +720,7 @@ int main() {
                     break;
                 }
                 default:
-                    cout << "[LỖI] Lựa chọn không hợp lệ! Vui lòng chọn từ 0 đến 7.\n";
+                    cout << "[LỖI] Lựa chọn không hợp lệ! Vui lòng chọn từ 0 đến 9.\n";
                     break;
             }
         }
@@ -602,6 +733,7 @@ int main() {
     delete spList;
     delete doctorList;
     delete queuePatient;
+    delete appointmentList;
 
     cout << "\nChương trình kết thúc. Tạm biệt!\n";
     return 0;

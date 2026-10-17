@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ostream>
 #include "human.h"
+#include "LinkList.h"
 
 enum class ManagerRole {
     Empty,
@@ -27,6 +28,15 @@ class Manager: public Human {
         ~Manager();
 
         ManagerRole getRole() const;
+        std::string getUsername() const;
+        std::string getPassword() const;
+        int getState() const;
+
+        void setUsername(const std::string &un);
+        void setPassword(const std::string &pw);
+        void setRole(ManagerRole r);
+        void setState(int st);
+
         void setDefault();
         bool isDefault() const;
         friend std::ostream &operator << (std::ostream &out, const Manager &M);
@@ -36,6 +46,12 @@ class Manager: public Human {
 
         void displayInfo() const override;
 
+        std::string toString() const;
+        static Manager loadFromString(const std::string &str);
+        static LinkList<Manager>* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const LinkList<Manager> *list);
+        static std::string roleToString(ManagerRole role);
+        static ManagerRole roleFromString(const std::string &str);
 };
 
 #endif
