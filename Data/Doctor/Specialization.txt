@@ -1,0 +1,12 @@
+Sp_ID  | Specialty      
+-------+----------------
+Sp_001 | Nội tổng quát  
+Sp_002 | Ngoại tổng quát
+Sp_003 | Tim mạch       
+Sp_004 | Thần kinh      
+Sp_005 | Tai Mũi Họng   
+Sp_006 | Hô hấp         
+Sp_007 | Tiêu hóa       
+Sp_008 | Cơ xương khớp  
+Sp_009 | Da liễu        
+Sp_010 | Mắt            

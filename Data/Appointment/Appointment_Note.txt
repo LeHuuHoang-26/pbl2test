@@ -1,0 +1,200 @@
+{
+    A_ID: A_001
+    AN_Description: Bệnh nhân sốt virus nhẹ, họng hơi đỏ, kê đơn paracetamol và vitamin C, hẹn tái khám nếu sốt quá 3 ngày.
+}
+{
+    A_ID: A_002
+    AN_Description: Hồi hộp kèm tức ngực nhẹ khi gắng sức, điện tâm đồ nhịp xoang đều, theo dõi huyết áp hàng ngày.
+}
+{
+    A_ID: A_003
+    AN_Description: Viêm họng cấp, niêm mạc mũi sung huyết, súc họng nước muối ấm và uống kháng viêm dạng men.
+}
+{
+    A_ID: A_004
+    AN_Description: Rối loạn tiêu hóa nghi do thức ăn, đau quặn bụng từng cơn, bổ sung men vi sinh và bù nước oresol.
+}
+{
+    A_ID: A_005
+    AN_Description: Vết thương phần mềm cẳng tay trầy xước, đã sát trùng và thay băng vô khuẩn, không dấu hiệu nhiễm trùng.
+}
+{
+    A_ID: A_006
+    AN_Description: Đau đầu căng thẳng do mất ngủ kéo dài, phản xạ thần kinh bình thường, hướng dẫn điều chỉnh sinh hoạt.
+}
+{
+    A_ID: A_007
+    AN_Description: Viêm phế quản co thắt nhẹ, phổi có ít ran rít rải rác, kê khí dung và thuốc giãn phế quản đường uống.
+}
+{
+    A_ID: A_008
+    AN_Description: Đau thắt lưng cơ học do ngồi sai tư thế, chỉ định chườm ấm, dùng giảm đau ngoại biên và tập vật lý trị liệu.
+}
+{
+    A_ID: A_009
+    AN_Description: Viêm kết mạc dị ứng hai mắt, ngứa và đỏ nhẹ bờ mi, nhỏ nước mắt nhân tạo và thuốc kháng histamin.
+}
+{
+    A_ID: A_010
+    AN_Description: Viêm da tiếp xúc kích ứng, ngứa rải rác vùng cổ, bôi kem làm dịu da và tránh tiếp xúc hóa chất tẩy rửa.
+}
+{
+    A_ID: A_011
+    AN_Description: Suy nhược cơ thể nhẹ do làm việc quá sức, huyết áp ổn định, tư vấn chế độ dinh dưỡng và bổ sung kẽm vi chất.
+}
+{
+    A_ID: A_012
+    AN_Description: Cơn nhịp nhanh kịch phát ngắn, siêu âm tim buồng tim bình thường, hạn chế cà phê và trà đặc.
+}
+{
+    A_ID: A_013
+    AN_Description: Viêm loét dạ dày tá tràng thể trợt nông, đau thượng vị sau ăn, kê đơn ức chế bơm proton trước ăn sáng.
+}
+{
+    A_ID: A_014
+    AN_Description: Sưng nề bầm tím vùng đùi sau ngã xe, phim X-quang không nứt gãy xương, chườm lạnh 48 giờ đầu.
+}
+{
+    A_ID: A_015
+    AN_Description: Viêm amidan mủ nhẹ hai bên, sốt nhẹ 38 độ kèm nuốt vướng, chỉ định kháng sinh đường uống 5 ngày.
+}
+{
+    A_ID: A_016
+    AN_Description: Tê bì đầu ngón tay cái và trỏ nghi hội chứng ống cổ tay sớm, hướng dẫn nẹp cổ tay tư thế cơ năng ban đêm.
+}
+{
+    A_ID: A_017
+    AN_Description: Ho khan kích ứng kéo dài hậu nhiễm siêu vi, phổi thông khí rõ, chỉ định siro thảo dược giảm ho.
+}
+{
+    A_ID: A_018
+    AN_Description: Thoái hóa khớp gối nguyên phát độ 2, lục cục khi co duỗi, bổ sung glucosamine sulfate và tránh ngồi xổm.
+}
+{
+    A_ID: A_019
+    AN_Description: Mày đay cấp tính lan tỏa vùng thân mình sau ăn hải sản, kê đơn kháng histamin H1 thế hệ 2.
+}
+{
+    A_ID: A_020
+    AN_Description: Khô mắt hội chứng thị giác màn hình, giác mạc nhẵn bóng, kê gel bôi trơn mắt trước khi đi ngủ.
+}
+{
+    A_ID: A_021
+    AN_Description: Rối loạn tiền đình ngoại biên lành tính, chóng mặt khi quay đầu, dùng thuốc tăng tuần hoàn máu não.
+}
+{
+    A_ID: A_022
+    AN_Description: Bong gân cổ chân độ 1, dây chằng sên mác trước căng nhẹ, cố định băng thun ép và nâng cao chân khi nằm.
+}
+{
+    A_ID: A_023
+    AN_Description: Tăng huyết áp nguyên phát độ 1, đo tại phòng khám 145/90 mmHg, kê đơn chẹn thụ thể liều thấp và ăn nhạt.
+}
+{
+    A_ID: A_024
+    AN_Description: Đau nửa đầu migraine có tiền triệu thị giác, kê thuốc nhóm triptan cắt cơn khi vừa xuất hiện triệu chứng.
+}
+{
+    A_ID: A_025
+    AN_Description: Viêm mũi xoang dị ứng thay đổi thời tiết, hắt hơi liên tục, xịt rửa mũi nước muối và xịt kháng viêm tại chỗ.
+}
+{
+    A_ID: A_026
+    AN_Description: Khí phế thũng nhẹ trên bệnh nhân hút thuốc lá 20 năm, đo phế dung ký tắc nghẽn nhẹ, tư vấn cai thuốc lá.
+}
+{
+    A_ID: A_027
+    AN_Description: Hội chứng ruột kích thích thể phối hợp, bụng chướng đầy hơi nhiều, hướng dẫn ăn theo chế độ FODMAP.
+}
+{
+    A_ID: A_028
+    AN_Description: Đợt cấp viêm khớp gút ngón chân cái, nồng độ acid uric 520 umol/L, dùng colchicine giảm đau và kiêng bia rượu.
+}
+{
+    A_ID: A_029
+    AN_Description: Viêm da cơ địa đợt bùng phát mạn tính, da khô nứt nẻ, kê kem dưỡng ẩm phục hồi ceramide bôi ngày 3 lần.
+}
+{
+    A_ID: A_030
+    AN_Description: Cận thị tiến triển kèm loạn thị nhẹ, đáy mắt chưa thấy tổn thương, đo khúc xạ và kê đơn cấp kính điều chỉnh.
+}
+{
+    A_ID: A_031
+    AN_Description: Nhiễm trùng hô hấp trên thể nhẹ, nghẹt mũi và nhức đầu, nghỉ ngơi uống nhiều nước hoa quả giàu vitamin.
+}
+{
+    A_ID: A_032
+    AN_Description: Vết rách nông mặt mu bàn tay dài 2cm, đã khâu 2 mũi chỉ nilon vô khuẩn, giữ khô vết thương và cắt chỉ sau 7 ngày.
+}
+{
+    A_ID: A_033
+    AN_Description: Bệnh cơ tim thiếu máu cục bộ ổn định, đau ngực thoáng qua khi leo cầu thang, duy trì thuốc hạ mỡ máu và giãn mạch.
+}
+{
+    A_ID: A_034
+    AN_Description: Run tay tư thế vô căn nhẹ, xét nghiệm tuyến giáp bình thường, giảm áp lực công việc và kiêng chất kích thích.
+}
+{
+    A_ID: A_035
+    AN_Description: Viêm tai giữa thanh dịch bán cấp tai phải, màng nhĩ đục lòng chảo, thông khí vòi nhĩ và thuốc co mạch cuống mũi.
+}
+{
+    A_ID: A_036
+    AN_Description: Hen suyễn ngoại sinh thể vừa, kiểm soát tốt bằng bình hít kết hợp corticoid và LABA, tiếp tục dùng đều đặn.
+}
+{
+    A_ID: A_037
+    AN_Description: Trào ngược dạ dày thực quản độ A, có cảm giác nghẹn vùng cổ họng, kê đơn giảm tiết acid và dặn nằm đầu dốc.
+}
+{
+    A_ID: A_038
+    AN_Description: Đau quanh khớp vai thể đông cứng sớm, tầm vận động dạng vai giới hạn nhẹ, hướng dẫn bài tập con lắc Codman.
+}
+{
+    A_ID: A_039
+    AN_Description: Nấm da thân mình mảng tròn viền đỏ có vảy mụn nước, vệ sinh đồ dùng cá nhân và bôi kem kháng nấm azole 2 tuần.
+}
+{
+    A_ID: A_040
+    AN_Description: Lẹo mắt mi trên mắt trái sưng nóng đỏ, chưa tụ mủ rõ, chườm ấm mi mắt ngày 3 lần kết hợp tra mỡ tobradex.
+}
+{
+    A_ID: A_041
+    AN_Description: Sốt siêu vi kéo dài kèm suy nhược, xét nghiệm công thức máu bạch cầu không tăng, kê đơn bù điện giải và vitamin nhóm B.
+}
+{
+    A_ID: A_042
+    AN_Description: Chấn thương phần mềm khớp gối trái, tràn dịch bao hoạt dịch mức độ nhẹ, băng chun ép và dùng thuốc kháng viêm giảm phù nề.
+}
+{
+    A_ID: A_043
+    AN_Description: Rối loạn nhịp tim ngoại tâm thu thất thưa, tim nghe rõ không tiếng thổi, chỉ định dùng thuốc chẹn beta giao cảm liều thấp.
+}
+{
+    A_ID: A_044
+    AN_Description: Đau dây thần kinh chẩm kết hợp đau căng cơ cổ vai gáy, chỉ định dùng thuốc giãn cơ và chiếu đèn hồng ngoại giảm đau.
+}
+{
+    A_ID: A_045
+    AN_Description: Viêm họng thanh quản cấp thể xuất tiết, dây thanh phù nề nhẹ, hạn chế nói to và khí dung corticoid tại chỗ 3 ngày.
+}
+{
+    A_ID: A_046
+    AN_Description: Viêm phế quản cấp bội nhiễm, ran ẩm rải rác đáy phổi hai bên, chỉ định dùng kháng sinh cephalosporin thế hệ 3 uống 7 ngày.
+}
+{
+    A_ID: A_047
+    AN_Description: Viêm ruột cấp tính do vi khuẩn, phân lỏng nhiều lần trong ngày, kê đơn kháng sinh đường ruột và men vi sinh probiotic.
+}
+{
+    A_ID: A_048
+    AN_Description: Thoái hóa cột sống thắt lưng kèm hẹp lỗ liên hợp nhẹ, chỉ định dùng thuốc giảm đau thần kinh và tập bơi lội phục hồi chức năng.
+}
+{
+    A_ID: A_049
+    AN_Description: Dị ứng thuốc thể hồng ban đa dạng nhẹ, tổn thương da khô dần, cho ngừng thuốc nghi ngờ và bôi kem làm dịu dưỡng ẩm.
+}
+{
+    A_ID: A_050
+    AN_Description: Đục dịch kính thể thoái hóa tuổi già mắt phải, màng bồ đào và võng mạc ổn định, nhỏ thuốc chống oxy hóa và theo dõi định kỳ.
+}
