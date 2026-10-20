@@ -2,8 +2,8 @@
 #define LIBPBL2_H
 
 #include <string>
-#include "LinkList.h"
-#include "Permission.h"
+#include "../DataStructures/LinkList.h"
+#include "../Models/Permission.h"
 
 class Manager;
 

@@ -1,7 +1,7 @@
 #ifndef PATIENT_H
 #define PATIENT_H
 
-#include "human.h"
+#include "Human.h"
 #include "LinkList.h"
 #include <string>
 #include <fstream>

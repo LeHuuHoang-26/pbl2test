@@ -1,7 +1,7 @@
 #ifndef DOCTOR_H
 #define DOCTOR_H
 
-#include "human.h"
+#include "Human.h"
 #include "LinkList.h"
 #include <string>
 

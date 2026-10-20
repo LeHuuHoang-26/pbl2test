@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 #include <ostream>
-#include "human.h"
+#include "Human.h"
 #include "LinkList.h"
 
 enum class ManagerRole {

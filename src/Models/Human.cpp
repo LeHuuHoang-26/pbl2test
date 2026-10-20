@@ -1,4 +1,4 @@
-#include "human.h"
+#include "Human.h"
 #include <string>
 #include <iostream>
 using namespace std;
