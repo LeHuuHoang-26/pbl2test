@@ -6,6 +6,7 @@
 #include "Queue.h"
 
 class SymptomPatient;
+class QueuePatientQueue;
 
 class QueuePatient {
     private:
@@ -37,8 +38,25 @@ class QueuePatient {
 
         std::string toString() const;
         static QueuePatient loadFromString(const std::string &str);
-        static Queue<QueuePatient>* loadFromFile(const std::string &path);
-        static bool saveToFile(const std::string &path, const Queue<QueuePatient> *queue);
+        static QueuePatientQueue* loadFromFile(const std::string &path);
+        static bool saveToFile(const std::string &path, const QueuePatientQueue *queue);
+};
+
+// Queue<QueuePatient> remains a regular FIFO. This wrapper adds the clinic's
+// waiting/visited workflow while preserving visited patients in the history.
+class QueuePatientQueue : public Queue<QueuePatient> {
+private:
+    Node *firstWaiting;
+
+public:
+    QueuePatientQueue();
+    QueuePatientQueue(const QueuePatientQueue &other);
+    QueuePatientQueue &operator=(const QueuePatientQueue &other);
+
+    void enQueue(const QueuePatient &patient) override;
+    Node *updateFirstWaiting();
+    Node *getFirstWaiting();
+    QueuePatient *deQueue() override;
 };
 
 #endif

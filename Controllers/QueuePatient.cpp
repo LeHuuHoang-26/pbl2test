@@ -48,6 +48,55 @@ QueuePatient::QueuePatient(const QueuePatient &QP)
 
 QueuePatient::~QueuePatient() {}
 
+QueuePatientQueue::QueuePatientQueue() : Queue<QueuePatient>(), firstWaiting(nullptr) {}
+
+QueuePatientQueue::QueuePatientQueue(const QueuePatientQueue &other)
+    : Queue<QueuePatient>(other), firstWaiting(nullptr) {
+    updateFirstWaiting();
+}
+
+QueuePatientQueue &QueuePatientQueue::operator=(const QueuePatientQueue &other) {
+    if (this != &other) {
+        Queue<QueuePatient>::operator=(other);
+        updateFirstWaiting();
+    }
+    return *this;
+}
+
+void QueuePatientQueue::enQueue(const QueuePatient &patient) {
+    Queue<QueuePatient>::enQueue(patient);
+    Node *added = getFooter()->prev;
+    if (patient.getState() == 0 && firstWaiting == nullptr) firstWaiting = added;
+}
+
+QueuePatientQueue::Node *QueuePatientQueue::updateFirstWaiting() {
+    Node *node = getHeader()->next;
+    while (node != getFooter()) {
+        if (node->data && node->data->getState() == 0) {
+            firstWaiting = node;
+            return firstWaiting;
+        }
+        node = node->next;
+    }
+    firstWaiting = nullptr;
+    return nullptr;
+}
+
+QueuePatientQueue::Node *QueuePatientQueue::getFirstWaiting() {
+    if (firstWaiting && firstWaiting->data && firstWaiting->data->getState() == 0)
+        return firstWaiting;
+    return updateFirstWaiting();
+}
+
+QueuePatient *QueuePatientQueue::deQueue() {
+    Node *waiting = getFirstWaiting();
+    if (!waiting || !waiting->data) return nullptr;
+    waiting->data->setState(1);
+    QueuePatient *visited = new QueuePatient(*waiting->data);
+    updateFirstWaiting();
+    return visited;
+}
+
 void QueuePatient::setDefault() {
     QueuePatient tmp;
     *this = tmp;
@@ -102,8 +151,8 @@ QueuePatient QueuePatient::loadFromString(const string &str) {
     return QueuePatient(qpId, spId, st);
 }
 
-Queue<QueuePatient>* QueuePatient::loadFromFile(const string &path) {
-    Queue<QueuePatient> *queue = new Queue<QueuePatient>;
+QueuePatientQueue* QueuePatient::loadFromFile(const string &path) {
+    QueuePatientQueue *queue = new QueuePatientQueue;
     if (!queue) return nullptr;
 
     ifstream f(path);
@@ -127,7 +176,7 @@ Queue<QueuePatient>* QueuePatient::loadFromFile(const string &path) {
     return queue;
 }
 
-bool QueuePatient::saveToFile(const string &path, const Queue<QueuePatient> *queue) {
+bool QueuePatient::saveToFile(const string &path, const QueuePatientQueue *queue) {
     if (!queue || queue->getHeader() == nullptr)
         return false;
 

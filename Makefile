@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures
+CXXFLAGS = -std=c++11 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures
 
 TARGET = main.exe
 

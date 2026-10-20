@@ -1,177 +1,90 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+// Generic FIFO queue. Domain-specific state transitions belong in a wrapper
+// for the corresponding data type (for example QueuePatientQueue).
 template <class T>
 class Queue {
-    public:
-        struct Node {
-            Node *next;
-            Node *prev;
-            T *data;
-        };
-    private:
-        Node *header;
-        Node *footer;
-        Node *firstWaiting;
-    public:
-        Queue(): header(new Node), footer(new Node), firstWaiting(nullptr) {
-            header->next = footer;
-            header->prev = nullptr;
+public:
+    struct Node {
+        Node *next;
+        Node *prev;
+        T *data;
+    };
 
-            footer->next = nullptr;
-            footer->prev = header;
+private:
+    Node *header;
+    Node *footer;
+
+    void initialize() {
+        header = new Node;
+        footer = new Node;
+        header->next = footer;
+        header->prev = nullptr;
+        footer->next = nullptr;
+        footer->prev = header;
+    }
+
+    void clear() {
+        Node *node = header->next;
+        while (node != footer) {
+            Node *next = node->next;
+            delete node->data;
+            delete node;
+            node = next;
         }
+        header->next = footer;
+        footer->prev = header;
+    }
 
-        Queue(const Queue &Q): header(new Node), footer(new Node), firstWaiting(nullptr) {
-            header->next = footer;
-            header->prev = nullptr;
+public:
+    Queue() : header(nullptr), footer(nullptr) { initialize(); }
 
-            footer->next = nullptr;
-            footer->prev = header;
+    Queue(const Queue &other) : header(nullptr), footer(nullptr) {
+        initialize();
+        for (Node *node = other.header->next; node != other.footer; node = node->next)
+            enQueue(*node->data);
+    }
 
-            Node *tmpQ = Q.header->next;
-            while (tmpQ != Q.footer) {
-                enQueue(*tmpQ->data);
-                tmpQ = tmpQ->next;
-            }
+    virtual ~Queue() {
+        clear();
+        delete header;
+        delete footer;
+    }
+
+    virtual void enQueue(const T &value) {
+        Node *node = new Node;
+        node->data = new T(value);
+        node->next = footer;
+        node->prev = footer->prev;
+        footer->prev->next = node;
+        footer->prev = node;
+    }
+
+    // Generic FIFO removal: removes the head item and returns an owned copy.
+    virtual T *deQueue() {
+        if (isEmpty()) return nullptr;
+        Node *node = header->next;
+        T *copy = new T(*node->data);
+        header->next = node->next;
+        node->next->prev = header;
+        delete node->data;
+        delete node;
+        return copy;
+    }
+
+    Queue &operator=(const Queue &other) {
+        if (this != &other) {
+            clear();
+            for (Node *node = other.header->next; node != other.footer; node = node->next)
+                enQueue(*node->data);
         }
+        return *this;
+    }
 
-        ~Queue() {
-            Node *tmp = header->next;
-            while (tmp != footer) {
-                Node *tmpN = tmp->next;
-                delete tmp->data;
-                delete tmp;
-
-                tmp = tmpN;
-            }
-
-            delete header;
-            delete footer;
-            firstWaiting = nullptr;
-        }
-
-        void enQueue(const T &data) {
-            Node *tmp = new Node;
-            tmp->data = new T(data);
-
-            tmp->next = footer;
-            tmp->prev = footer->prev;
-            footer->prev->next = tmp;
-            footer->prev = tmp;
-
-            if constexpr (requires { tmp->data->getState(); }) {
-
-                if (tmp->data->getState() == 0 && firstWaiting == nullptr) {
-                    firstWaiting = tmp;
-                }
-            } else {
-
-                if (firstWaiting == nullptr) {
-                    firstWaiting = tmp;
-                }
-            }
-        }
-
-        Node *updateFirstWaiting() {
-            if constexpr (requires { header->next->data->getState(); }) {
-                Node *cur = header->next;
-                while (cur != footer) {
-                    if (cur->data && cur->data->getState() == 0) {
-                        firstWaiting = cur;
-                        return firstWaiting;
-                    }
-                    cur = cur->next;
-                }
-                firstWaiting = nullptr;
-                return nullptr;
-            } else {
-                firstWaiting = (header->next != footer) ? header->next : nullptr;
-                return firstWaiting;
-            }
-        }
-
-        Node *getFirstWaiting() {
-            if constexpr (requires { header->next->data->getState(); }) {
-                if (firstWaiting != nullptr)
-                    return firstWaiting;
-                return updateFirstWaiting();
-            } else {
-                return (header->next != footer) ? header->next : nullptr;
-            }
-        }
-
-        T* deQueue() {
-            if (header->next == footer)
-                return nullptr;
-
-            if constexpr (requires { header->next->data->getState(); }) {
-                Node *target = getFirstWaiting();
-                if (!target)
-                    return nullptr;
-
-                target->data->setState(1);
-
-                T *tmpData = new T(*target->data);
-
-                Node *cur = target->next;
-                firstWaiting = nullptr;
-                while (cur != footer) {
-                    if (cur->data && cur->data->getState() == 0) {
-                        firstWaiting = cur;
-                        break;
-                    }
-                    cur = cur->next;
-                }
-
-                return tmpData;
-            } else {
-                Node *tmp = header->next;
-                T* tmpData = new T(*tmp->data);
-                header->next = tmp->next;
-                tmp->next->prev = header;
-
-                delete tmp->data;
-                delete tmp;
-
-                firstWaiting = (header->next != footer) ? header->next : nullptr;
-                return tmpData;
-            }
-        }
-
-        Queue &operator=(const Queue &Q) {
-            if (this != &Q) {
-                Node *tmp = header->next;
-                while (tmp != footer) {
-                    Node *tmpN = tmp->next;
-                    delete tmp->data;
-                    delete tmp;
-                    tmp = tmpN;
-                }
-                header->next = footer;
-                footer->prev = header;
-                firstWaiting = nullptr;
-
-                Node *tmpQ = Q.header->next;
-                while (tmpQ != Q.footer) {
-                    enQueue(*tmpQ->data);
-                    tmpQ = tmpQ->next;
-                }
-            }
-            return *this;
-        }
-
-        bool isEmpty() const {
-            return (header->next == footer);
-        }
-
-        Node *getHeader() const {
-            return header;
-        }
-
-        Node *getFooter() const {
-            return footer;
-        }
+    bool isEmpty() const { return header->next == footer; }
+    Node *getHeader() const { return header; }
+    Node *getFooter() const { return footer; }
 };
 
 #endif

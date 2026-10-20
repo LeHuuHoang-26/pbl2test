@@ -1,6 +1,6 @@
 # HỆ THỐNG TIẾP NHẬN BỆNH NHÂN & QUẢN LÝ HÀNG ĐỢI PHÒNG KHÁM (PBL2)
 
-Dự án môn học Lập trình hướng đối tượng / Đồ án cơ sở (PBL2) xây dựng trên nền tảng **C++23**, áp dụng kiến trúc hướng đối tượng (OOP), các cấu trúc dữ liệu tự định nghĩa (`LinkList`, `Queue`), và các kỹ thuật C++ hiện đại (`if constexpr`, `requires`, Template Specialization, Template Template Parameters).
+Dự án môn học Lập trình hướng đối tượng / Đồ án cơ sở (PBL2) sử dụng **C++ và Qt 6 Widgets** để xây dựng giao diện quản lý phòng khám, cùng các cấu trúc dữ liệu tự định nghĩa (`LinkList`, `Queue`).
 
 ---
 
@@ -87,15 +87,13 @@ pbl_2test/
   - `insert(T info)`: Thêm một phần tử vào cuối danh sách trước `footer`.
   - `getHeader()`, `getFooter()`: Truy xuất nút đầu và nút cuối để duyệt danh sách tuần tự.
 
-#### 2. `Queue<T>` (Hàng đợi liên kết đôi với con trỏ `firstWaiting`)
+#### 2. `Queue<T>` và `QueuePatientQueue`
 - **Cấu trúc:**
   - Nút đôi `Node { Node *next; Node *prev; T *data; }`.
   - Có nút canh gác `header` và `footer`.
-  - Con trỏ đặc biệt **`firstWaiting`**: Trỏ trực tiếp đến nút đầu tiên trong hàng đợi có bệnh nhân đang ở trạng thái chờ khám (`State == 0`).
 - **Phương thức chính:**
-  - `enQueue(T val)`: Thêm phần tử mới vào cuối hàng đợi (ngay trước `footer`). Tự động cập nhật `firstWaiting` nếu trước đó chưa có ai chờ.
-  - `deQueue()`: Gọi khám bệnh nhân theo thứ tự FIFO. Với kiểu dữ liệu có `getState()`, hàm **không giải phóng node** mà chỉ chuyển `State: 0 -> 1` và dịch `firstWaiting` sang bệnh nhân kế tiếp, trả về con trỏ bản sao dữ liệu.
-  - `updateFirstWaiting()`: Quét lại từ đầu hàng đợi để đồng bộ chính xác con trỏ `firstWaiting`.
+  - `Queue<T>` là FIFO tổng quát: `enQueue(T val)` thêm cuối, `deQueue()` lấy và loại bỏ phần tử đầu.
+  - `QueuePatientQueue` kế thừa FIFO và giữ nghiệp vụ hàng đợi phòng khám: `firstWaiting`, `updateFirstWaiting()`, `getFirstWaiting()` và `deQueue()` đổi trạng thái bệnh nhân sang đã khám nhưng giữ node làm lịch sử.
   - `isEmpty()`: Kiểm tra hàng đợi rỗng.
 
 ---
@@ -131,28 +129,9 @@ pbl_2test/
 
 ## 4. CÁC KỸ THUẬT LẬP TRÌNH NÂNG CAO
 
-### 4.1. Cơ chế `if constexpr` và C++20 `requires`
+### 4.1. Tách hàng đợi tổng quát khỏi nghiệp vụ phòng khám
 
-#### Vấn đề đặt ra:
-Template class `Queue<T>` được thiết kế tổng quát cho mọi kiểu dữ liệu `T`. Tuy nhiên, với bài toán phòng khám:
-- Nếu `T` là `QueuePatient`: Khi `deQueue()`, ta muốn **giữ lại node** trong hàng đợi để làm lịch sử, chỉ đổi `State` từ `0` thành `1` (thông qua phương thức `getState()` và `setState(1)`).
-- Nếu `T` là một kiểu dữ liệu thông thường (ví dụ: `int`, `string`... không có hàm `getState()`): Mã nguồn không được phép gọi `obj.getState()`, nếu không trình biên dịch sẽ báo lỗi cú pháp.
-
-#### Giải pháp C++23: Kết hợp `if constexpr` và biểu thức `requires`:
-`if constexpr` thực hiện đánh giá điều kiện tại **thời điểm biên dịch** (Compile-time) thay vì lúc chạy (Runtime). Trình biên dịch sẽ **loại bỏ hoàn toàn** nhánh không thỏa mãn, không sinh mã máy cho nhánh đó.
-
-```cpp
-template <class T>
-T* Queue<T>::deQueue() {
-    if (isEmpty()) return nullptr;
-
-    // Kiểm tra xem kiểu T có cung cấp phương thức getState() hay không tại thời điểm biên dịch
-    if constexpr (requires(T obj) { { obj.getState() } -> std::convertible_to<int>; }) {
-        // NHÁNH 1: Dành riêng cho QueuePatient (hoặc bất kỳ kiểu nào có State)
-        Node *target = firstWaiting;
-        if (target == nullptr) {
-            return nullptr;
-        }
+`Queue<T>` chỉ cung cấp thao tác FIFO và không phụ thuộc vào các phương thức trạng thái của kiểu `T`. `QueuePatientQueue` kế thừa lớp này, rồi bổ sung việc tìm bệnh nhân đang chờ, đánh dấu đã khám và giữ lại lịch sử. Nhờ vậy các kiểu dữ liệu khác có thể dùng `Queue<T>` mà không cần có `getState()` hoặc `setState()`.
 
         // Cập nhật State thành 1 (đã khám), giữ nguyên node trong hàng đợi
         target->data->setState(1);
@@ -226,10 +205,10 @@ Mỗi lớp thực thể cung cấp một phương thức `save(std::ofstream &f
 
 ---
 
-### 4.3. Hàng đợi vòng liên kết đôi bảo toàn lịch sử
+### 4.3. Hàng đợi bệnh nhân liên kết đôi bảo toàn lịch sử
 
 - **Khởi tạo:** `header` và `footer` trỏ lẫn nhau.
-- **`firstWaiting`:** Luôn theo dõi vị trí người tiếp theo cần phục vụ.
+- **`QueuePatientQueue::firstWaiting`:** Theo dõi vị trí người tiếp theo cần phục vụ.
 - **Lợi ích:**
   - Không cần tạo thêm một danh sách riêng để lưu lịch sử khám bệnh.
   - Vẫn duyệt được danh sách chờ với độ phức tạp $O(1)$ để lấy người tiếp theo, và duyệt lịch sử theo thứ tự tiếp nhận ban đầu.
@@ -316,40 +295,21 @@ Mọi dòng trong `Data/Patient.txt` và hiển thị console đều được c�
 
 ## 6. HƯỚNG DẪN BIÊN DỊCH VÀ CHẠY CHƯƠNG TRÌNH
 
-### Yêu cầu môi trường:
-- Trình biên dịch: GCC / MinGW-w64 hỗ trợ chuẩn **C++23**.
-- Hệ điều hành: Windows (chạy console hỗ trợ UTF-8 `SetConsoleOutputCP(65001)`).
+### Yêu cầu
+- Windows, Qt 6 Widgets và bộ biên dịch MinGW tương ứng với Qt.
+- Dữ liệu trong thư mục `Data/` được đọc theo đường dẫn tương đối từ thư mục dự án.
 
-### Lệnh biên dịch (Compile & Link):
-Mở terminal tại thư mục gốc của dự án (`pbl_2test/`) và thực hiện:
+### Chạy nhanh trên máy đã cài Qt tại `C:\msys64\ucrt64`
+Mở PowerShell ở thư mục dự án và chạy:
 
-```bash
-# 1. Biên dịch các module controller thành file đối tượng (.o)
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Appointment.cpp -o Controllers/Appointment.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Date.cpp -o Controllers/Date.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Doctor.cpp -o Controllers/Doctor.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/human.cpp -o Controllers/human.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/libPBL2.cpp -o Controllers/libPBL2.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Manager.cpp -o Controllers/Manager.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Patient.cpp -o Controllers/Patient.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/QueuePatient.cpp -o Controllers/QueuePatient.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/Symptom.cpp -o Controllers/Symptom.o
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c Controllers/SymptomPatient.cpp -o Controllers/SymptomPatient.o
-
-# 2. Biên dịch hàm main
-g++ -std=c++23 -Wall -Wextra -I./Models -I./Controllers -I./Data_structures -c main.cpp -o main.o
-
-# 3. Liên kết tạo chương trình thực thi (main.exe)
-g++ main.o Controllers/Appointment.o Controllers/Date.o Controllers/Doctor.o Controllers/human.o Controllers/libPBL2.o Controllers/Manager.o Controllers/Patient.o Controllers/QueuePatient.o Controllers/Symptom.o Controllers/SymptomPatient.o -o main.exe -mconsole
+```powershell
+.\run_qt.bat
 ```
 
-### Chạy chương trình:
-```bash
-./main.exe
-```
+Tập lệnh sẽ biên dịch giao diện Qt rồi mở ứng dụng. Có thể mở trực tiếp `build-qt\release\AnTamClinic.exe` sau khi đã build, nhưng cần khởi chạy từ thư mục gốc dự án để ứng dụng tìm thấy dữ liệu.
 
-* **Tài khoản đăng nhập quản trị mẫu:**
-  - **Tên đăng nhập (Username):** `HoangMA001`
-  - **Mật khẩu (Password):** `HoangMA001`
-  - *(Nhập `0` tại màn hình đăng nhập nếu muốn dừng hệ thống)*.
+### Tài khoản mẫu
+- Tên đăng nhập: `HoangMA001`
+- Mật khẩu: `HoangMA001`
+- Quản trị cấp cao (có mục quản lý tài khoản): `MA_001`.
 
