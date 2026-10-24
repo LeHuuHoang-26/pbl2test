@@ -21,7 +21,7 @@ class LinkList {
             footer->next = nullptr;
             footer->prev = header;
         }
-        LinkList(const LinkList &L): header(new Node), footer(new Node) {
+        LinkList(const LinkList &L): header(new Node), footer(new Node), count(L.count) {
             header->next = footer;
             header->prev = nullptr;
 
@@ -76,6 +76,9 @@ class LinkList {
             delete N;
             LinkList<T>::count--;
             return true;
+        }
+        int getCount() const {
+            return count;
         }
         Node *getHeader() const {
             return header;

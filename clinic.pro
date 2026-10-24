@@ -3,6 +3,7 @@ CONFIG += c++17
 CONFIG -= console
 TEMPLATE = app
 TARGET = AnTamClinic
+RC_ICONS = assets/textures/icon_app.ico
 
 INCLUDEPATH += src/Models src/Controllers src/Utils src/DataStructures
 
