@@ -6,15 +6,11 @@
 
 enum class PermissionType {
     Empty = 0,
-    Per_01,
-    Per_02,
-    Per_03,
-    Per_04,
-    Per_05,
-    Per_06,
-    Per_07,
-    Per_08,
-    Per_00
+    Per_1,
+    Per_2,
+    Per_3,
+    Per_4,
+    Per_5
 };
 
 class Permission {

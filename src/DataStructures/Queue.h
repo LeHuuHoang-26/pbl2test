@@ -1,8 +1,6 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-// Generic FIFO queue. Domain-specific state transitions belong in a wrapper
-// for the corresponding data type (for example QueuePatientQueue).
 template <class T>
 class Queue {
 public:
@@ -61,7 +59,6 @@ public:
         footer->prev = node;
     }
 
-    // Generic FIFO removal: removes the head item and returns an owned copy.
     virtual T *deQueue() {
         if (isEmpty()) return nullptr;
         Node *node = header->next;

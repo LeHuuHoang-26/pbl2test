@@ -1,0 +1,7 @@
+Per_ID | Per_Name
+-------+----------------------------------------------
+Per_1 | Cấp quyền tạm thời làm admin có thời hạn
+Per_2 | Chỉnh sửa thông tin bác sĩ
+Per_3 | Chỉnh sửa thông tin bệnh nhân
+Per_4 | Chỉnh sửa thông tin lịch hẹn khám bệnh
+Per_5 | Chỉnh sửa lịch nghỉ

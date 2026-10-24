@@ -10,16 +10,18 @@ private:
     std::string id;
     std::string patientId;
     std::string doctorId;
+    std::string symptomId;
     Date dateSet;
     Date dateGet;
     int state;
 
 public:
-    Appointment(std::string id = "", std::string patientId = "", std::string doctorId = "", const Date &dateSet = Date(), const Date &dateGet = Date(), int state = 0);
+    Appointment(std::string id = "", std::string patientId = "", std::string doctorId = "", const Date &dateSet = Date(), const Date &dateGet = Date(), int state = 0, std::string symptomId = "");
 
     std::string getId() const;
     std::string getPatientId() const;
     std::string getDoctorId() const;
+    std::string getSymptomId() const;
     Date getDateSet() const;
     Date getDateGet() const;
     int getState() const;
@@ -27,6 +29,7 @@ public:
     void setId(const std::string &id);
     void setPatientId(const std::string &patientId);
     void setDoctorId(const std::string &doctorId);
+    void setSymptomId(const std::string &symptomId);
     void setDateSet(const Date &dateSet);
     void setDateGet(const Date &dateGet);
     void setState(int state);

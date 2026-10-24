@@ -41,29 +41,21 @@ void Permission::setDefault() {
 
 string Permission::permissionTypeToString(PermissionType per) {
     switch (per) {
-        case PermissionType::Per_00: return "00";
-        case PermissionType::Per_01: return "01";
-        case PermissionType::Per_02: return "02";
-        case PermissionType::Per_03: return "03";
-        case PermissionType::Per_04: return "04";
-        case PermissionType::Per_05: return "05";
-        case PermissionType::Per_06: return "06";
-        case PermissionType::Per_07: return "07";
-        case PermissionType::Per_08: return "08";
+        case PermissionType::Per_1: return "Per_1";
+        case PermissionType::Per_2: return "Per_2";
+        case PermissionType::Per_3: return "Per_3";
+        case PermissionType::Per_4: return "Per_4";
+        case PermissionType::Per_5: return "Per_5";
         default: return "Empty";
     }
 }
 
 PermissionType Permission::permissionTypeFromString(const string &str) {
-    if (str == "Per_00" || str == "00") return PermissionType::Per_00;
-    if (str == "Per_01" || str == "01") return PermissionType::Per_01;
-    if (str == "Per_02" || str == "02") return PermissionType::Per_02;
-    if (str == "Per_03" || str == "03") return PermissionType::Per_03;
-    if (str == "Per_04" || str == "04") return PermissionType::Per_04;
-    if (str == "Per_05" || str == "05") return PermissionType::Per_05;
-    if (str == "Per_06" || str == "06") return PermissionType::Per_06;
-    if (str == "Per_07" || str == "07") return PermissionType::Per_07;
-    if (str == "Per_08" || str == "08") return PermissionType::Per_08;
+    if (str == "Per_1" || str == "1") return PermissionType::Per_1;
+    if (str == "Per_2" || str == "2") return PermissionType::Per_2;
+    if (str == "Per_3" || str == "3") return PermissionType::Per_3;
+    if (str == "Per_4" || str == "4") return PermissionType::Per_4;
+    if (str == "Per_5" || str == "5") return PermissionType::Per_5;
     return PermissionType::Empty;
 }
 

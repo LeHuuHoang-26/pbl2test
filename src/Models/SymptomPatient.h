@@ -12,6 +12,7 @@ class SymptomPatient {
         std::string S_id;
         std::string P_id;
         Date date;
+        bool resolved;
     public:
         SymptomPatient();
         SymptomPatient(std::ifstream &f);
@@ -27,11 +28,13 @@ class SymptomPatient {
         std::string getS_id() const;
         std::string getP_id() const;
         Date getDate() const;
+        bool isResolved() const;
 
         void setQP_id(std::string QP_id);
         void setS_id(std::string S_id);
         void setP_id(std::string P_id);
         void setDate(Date date);
+        void setResolved(bool resolved);
         void addS_id(const std::string &id);
 
         void save(std::ofstream &f) const;
