@@ -1,0 +1,8 @@
+MA_ID  | MA_FullName        | MA_Phone   | MA_Gender | MA_Age    | MA_UserName          | MA_Password       | MA_Role | MA_State
+-------+--------------------+------------+-----------+-----------+----------------------+-------------------+---------+---------
+MA_001 | Lê Hữu Hoàng       | 0352667148 | 1         | 19        | HoangMA001           | HoangMA001        | 3       | 1
+MA_002 | Đặng Thanh Bảo Lộc | 0987654343 | 1         | 19        | LocMA002             | LocMA002          | 2       | 1
+MA_003 | Nguyễn Bảo Long    | 0786584432 | 1         | 20        | LongMA003            | LongMA003         | 2       | 1
+MA_004 | Hồ Khuynh Na       | 0897602200 | 0         | 18        | NaMA004              | NaMA004           | 2       | 1
+MA_005 | Lam Hãi Vu         | 0708009921 | 0         | 23        | VuMA005              | VuMA005           | 1       | 1
+MA_006 | Nguyệt Việt Giai   | 0906706681 | 0         | 54        | GiaiMA006            | GiaiMA006         | 1       | 0
