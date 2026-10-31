@@ -4,10 +4,10 @@
 #include <sstream>
 
 Doctor *DoctorController::findById(LinkList<Doctor> *doctors, const std::string &id) {
-    if (!doctors || !doctors->getHeader()) return nullptr;
+    if (id.empty() || !doctors || !doctors->getHeader()) return nullptr;
     auto *node = doctors->getHeader()->next;
     while (node && node->next) {
-        if (node->info.getID() == id) return &node->info;
+        if (!node->info.isDefault() && node->info.getID() == id) return &node->info;
         node = node->next;
     }
     return nullptr;
@@ -22,12 +22,19 @@ std::string DoctorController::generateNextId(const LinkList<Doctor> *doctors) {
     if (doctors && doctors->getHeader()) {
         auto *n = doctors->getHeader()->next;
         while (n && n->next) {
-            std::string id = n->info.getID();
-            if (id.rfind("D_", 0) == 0) {
-                try {
-                    int val = std::stoi(id.substr(2));
-                    if (val > maxId) maxId = val;
-                } catch (...) {}
+            if (!n->info.isDefault()) {
+                std::string id = n->info.getID();
+                if (id.rfind("D_", 0) == 0) {
+                    try {
+                        int val = std::stoi(id.substr(2));
+                        if (val > maxId) maxId = val;
+                    } catch (...) {}
+                } else if (id.rfind("D", 0) == 0) {
+                    try {
+                        int val = std::stoi(id.substr(1));
+                        if (val > maxId) maxId = val;
+                    } catch (...) {}
+                }
             }
             n = n->next;
         }

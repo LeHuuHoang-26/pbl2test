@@ -42,6 +42,7 @@ class LinkList {
                 tmp = tmp->next;
             }
         }
+        LinkList &operator=(const LinkList &) = delete;
         ~LinkList() {
             Node *tmp = header;
             while (tmp != nullptr) {

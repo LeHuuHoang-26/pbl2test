@@ -111,10 +111,25 @@ Doctor Doctor::loadFromString(const string &str) {
     if (id.empty()) return Doctor();
 
     bool gender = (genderStr == "1");
-    int age = (!ageStr.empty() ? stoi(ageStr) : 0);
+    int age = 0;
+    try {
+        if (!ageStr.empty()) age = stoi(ageStr);
+    } catch (...) {}
+
     bool state = (stateStr == "1");
-    double fee = (!feeStr.empty() ? stod(feeStr) : 0.0);
-    double rating = (!ratingStr.empty() ? stod(ratingStr) : 0.0);
+
+    double fee = 0.0;
+    try {
+        if (!feeStr.empty()) fee = stod(feeStr);
+    } catch (...) {}
+
+    double rating = 5.0;
+    try {
+        size_t pipePos = ratingStr.find('|');
+        if (pipePos != string::npos) ratingStr = ratingStr.substr(0, pipePos);
+        libPBL2::trim(ratingStr);
+        if (!ratingStr.empty()) rating = stod(ratingStr);
+    } catch (...) {}
 
     return Doctor(id, fullName, phone, gender, age, spId, state, roomId, fee, rating);
 }

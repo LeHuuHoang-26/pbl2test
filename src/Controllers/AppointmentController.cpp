@@ -35,13 +35,10 @@ static bool compareAppointmentDates(const Appointment *a, const Appointment *b) 
 }
 
 void AppointmentController::sortAppointmentsByDate(QList<Appointment*> &list) {
-    for (int i = 0; i < list.size(); ++i) {
-        for (int j = i + 1; j < list.size(); ++j) {
-            if (compareAppointmentDates(list[j], list[i])) {
-                list.swapItemsAt(i, j);
-            }
-        }
-    }
+    libPBL2::qsort(list, [](const Appointment *a, const Appointment *b) {
+        if (!a || !b) return false;
+        return compareAppointmentDates(a, b);
+    });
 }
 
 QList<Appointment*> AppointmentController::getAppointmentsForDate(const LinkList<Appointment> *appointments, const QDate &targetDate) {

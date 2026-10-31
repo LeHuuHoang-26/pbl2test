@@ -26,10 +26,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QFrame>
-#include <QMessageBox>
 #include <QIcon>
 #include <QStyle>
 #include <QTimer>
+#include <QDebug>
 
 using namespace std;
 
@@ -289,6 +289,7 @@ QString MainWindow::style() const
                 padding: 4px 10px;
                 border-radius: 6px;
                 color: #0f172a;
+                background-color: #ffffff;
             }
             QComboBox QAbstractItemView::item:hover {
                 background-color: #f0fdfa;
@@ -298,22 +299,24 @@ QString MainWindow::style() const
                 background-color: #0d9488;
                 color: #ffffff;
             }
-            QScrollBar:vertical {
+            QScrollBar:vertical, QScrollBar:horizontal {
                 border: none;
-                background: #f1f5f9;
-                width: 6px;
-                border-radius: 3px;
-                margin: 2px;
+                background: transparent;
+                width: 0px;
+                height: 0px;
+                margin: 0px;
             }
-            QScrollBar::handle:vertical {
-                background: #cbd5e1;
-                min-height: 20px;
-                border-radius: 3px;
+            QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+                background: transparent;
+                border: none;
+                min-height: 0px;
+                min-width: 0px;
             }
-            QScrollBar::handle:vertical:hover {
-                background: #94a3b8;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            QScrollBar::add-line, QScrollBar::sub-line,
+            QScrollBar::add-page, QScrollBar::sub-page {
+                background: transparent;
+                border: none;
+                width: 0px;
                 height: 0px;
             }
             QTableWidget { background: white; border: 1px solid #e2e8f0; border-radius: 12px; gridline-color: transparent; selection-background-color: #f1f5f9; selection-color: #17334a; }
@@ -343,6 +346,7 @@ void MainWindow::setPage(int index)
     if (pages)
         pages->setCurrentIndex(index);
     updateNavigation();
+    qInfo() << "Chuyển trang hiển thị:" << index;
 }
 
 void MainWindow::updateNavigation()
@@ -385,6 +389,7 @@ void MainWindow::handleLogin()
     if (success && manager)
     {
         currentManager = manager;
+        qInfo() << "Đăng nhập thành công:" << username << "| Quyền:" << ManagerController::roleName(manager->getRole());
         loginView->showSuccessMessage("Đăng nhập thành công!");
 
         // Khởi dựng Shell làm việc theo phân quyền tài khoản
@@ -399,6 +404,7 @@ void MainWindow::handleLogin()
     }
     else
     {
+        qWarning() << "Đăng nhập thất bại:" << username << "| Lỗi:" << errorMessage;
         loginView->showErrorMessage(errorMessage);
     }
 }
@@ -503,6 +509,7 @@ void MainWindow::handleLogout()
 
     if (dialog.exec() == QDialog::Accepted)
     {
+        qInfo() << "Người dùng thực hiện đăng xuất.";
         saveAll();
         currentManager = nullptr;
         showLogin();
@@ -519,6 +526,15 @@ void MainWindow::setupShell()
         delete root;
         root = nullptr;
     }
+    if (appointmentView)
+    {
+        delete appointmentView;
+        appointmentView = nullptr;
+    }
+    patientView = nullptr;
+    doctorView = nullptr;
+    accountView = nullptr;
+    statisticView = nullptr;
 
     root = new QWidget;
     root->setObjectName("appRoot");
@@ -741,7 +757,7 @@ void MainWindow::refreshPage(int index)
         {
             QWidget *old = pages->widget(0);
             pages->removeWidget(old);
-            delete old;
+            if (old) old->deleteLater();
             pages->insertWidget(0, appointmentView->createDashboardWidget(pages));
         }
         break;
@@ -750,7 +766,7 @@ void MainWindow::refreshPage(int index)
         {
             QWidget *old = pages->widget(1);
             pages->removeWidget(old);
-            delete old;
+            if (old) old->deleteLater();
             pages->insertWidget(1, appointmentView->createBookingWidget(pages));
         }
         break;
@@ -767,7 +783,7 @@ void MainWindow::refreshPage(int index)
         {
             QWidget *old = pages->widget(4);
             pages->removeWidget(old);
-            delete old;
+            if (old) old->deleteLater();
             pages->insertWidget(4, appointmentView->createAppointmentListWidget(pages));
         }
         break;
@@ -791,7 +807,12 @@ void MainWindow::saveAll()
               Appointment::saveToFile(appointmentPath, appointments);
     if (!ok)
     {
-        QMessageBox::warning(this, "Lỗi lưu dữ liệu", "Không thể lưu một hoặc nhiều tệp dữ liệu.");
+        qCritical() << "Lỗi: Không thể lưu một hoặc nhiều tệp dữ liệu vào Data/";
+        UIHelper::showWarning(this, "Lỗi lưu dữ liệu", "Không thể lưu một hoặc nhiều tệp dữ liệu.");
+    }
+    else
+    {
+        qInfo() << "Lưu thành công toàn bộ dữ liệu hệ thống vào thư mục Data/";
     }
 }
 
@@ -838,9 +859,13 @@ bool MainWindow::initApp()
     bool ok = managers && patients && doctors && symptoms && symptomPatients && appointments;
     if (!ok)
     {
-        QMessageBox::critical(this, "Lỗi dữ liệu", "Không thể nạp dữ liệu từ thư mục Data/! Vui lòng đảm bảo tệp dữ liệu tồn tại và ứng dụng được khởi chạy từ đúng thư mục.");
+        qCritical() << "Lỗi: Không thể nạp dữ liệu từ thư mục Data/!";
+        UIHelper::showWarning(this, "Lỗi dữ liệu", "Không thể nạp dữ liệu từ thư mục Data/! Vui lòng đảm bảo tệp dữ liệu tồn tại và ứng dụng được khởi chạy từ đúng thư mục.");
         return false;
     }
+    qInfo() << "Nạp thành công dữ liệu từ Data/. Tổng bác sĩ:" << (doctors ? doctors->count : 0)
+            << "| Bệnh nhân:" << (patients ? patients->count : 0)
+            << "| Lịch hẹn:" << (appointments ? appointments->count : 0);
 
     // Cập nhật trạng thái triệu chứng
     auto *p = patients->getHeader()->next;

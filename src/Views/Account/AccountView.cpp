@@ -1,4 +1,5 @@
 #include "AccountView.h"
+#include "libPBL2.h"
 #include "MainWindow.h"
 #include "ManagerController.h"
 #include "UIHelper.h"
@@ -11,7 +12,6 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QCheckBox>
-#include <QMessageBox>
 #include <QLabel>
 #include <QFrame>
 #include <QHeaderView>
@@ -112,71 +112,48 @@ void AccountView::setupUI() {
     layout->addLayout(actions);
 
     // Table: Bỏ cột mã, đặt các cột thẳng hàng tương tự tổng quan
-    table = new QTableWidget;
-    table->setColumnCount(4);
-    table->setHorizontalHeaderLabels({"HỌ VÀ TÊN", "TÀI KHOẢN", "VAI TRÒ", "TRẠNG THÁI"});
-    table->verticalHeader()->setVisible(false);
-    table->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table->setSelectionMode(QAbstractItemView::SingleSelection);
-    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    table->setShowGrid(false);
-    table->setFocusPolicy(Qt::NoFocus);
-    table->setStyleSheet(R"(
-        QTableWidget {
-            background-color: transparent;
-            border: none;
-            gridline-color: transparent;
-        }
-        QHeaderView {
-            border: none;
-            background: transparent;
-        }
-        QHeaderView::section {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            font-size: 11.5px;
-            padding: 10px 14px;
-            border: none;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 2px solid #e2e8f0;
-            border-left: none;
-            border-right: none;
-        }
-        QTableWidget::item {
-            background: #ffffff;
-            border: none;
-            border-bottom: 1px solid #f1f5f9;
-            border-left: none;
-            border-right: none;
-            padding-left: 14px;
-            padding-right: 14px;
-            color: #1e293b;
-            font-size: 13px;
-        }
-        QTableWidget::item:hover {
-            background: #f0fdfa;
-        }
-        QTableWidget::item:selected {
-            background-color: #ccfbf1;
-            color: #0f766e;
-            font-weight: 700;
-        }
-    )");
+    table = UIHelper::table({"HỌ VÀ TÊN", "TÀI KHOẢN", "VAI TRÒ", "TRẠNG THÁI", ""});
     table->setWordWrap(false);
     table->setTextElideMode(Qt::ElideRight);
-    table->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    table->verticalHeader()->setDefaultSectionSize(48);
+
     if (table->horizontalHeaderItem(0)) table->horizontalHeaderItem(0)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     if (table->horizontalHeaderItem(1)) table->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     if (table->horizontalHeaderItem(2)) table->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     if (table->horizontalHeaderItem(3)) table->horizontalHeaderItem(3)->setTextAlignment(Qt::AlignCenter);
-    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    table->setColumnWidth(3, 160);
-    table->verticalHeader()->setDefaultSectionSize(48);
-    layout->addWidget(table, 1);
+    if (table->horizontalHeaderItem(4)) table->horizontalHeaderItem(4)->setTextAlignment(Qt::AlignCenter);
+
+    // Tự động scale các cột sao cho tổng chiều rộng các cột luôn bằng chính xác chiều rộng bảng
+    UIHelper::setupTableScaling(table, {0.30, 0.26, 0.26, 0.18}, 56);
+
+    connect(table->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
+        if (logicalIndex < 0 || logicalIndex >= 4) return;
+        if (sortColumn == logicalIndex) {
+            sortAscending = !sortAscending;
+        } else {
+            sortColumn = logicalIndex;
+            sortAscending = true;
+        }
+
+        libPBL2::AccountSortBy criteria = libPBL2::AccountSortBy::Name;
+        switch (logicalIndex) {
+            case 0: criteria = libPBL2::AccountSortBy::Name; break;
+            case 1: criteria = libPBL2::AccountSortBy::Username; break;
+            case 2: criteria = libPBL2::AccountSortBy::Role; break;
+            case 3: criteria = libPBL2::AccountSortBy::State; break;
+            default: return;
+        }
+
+        if (mainWindow && mainWindow->getManagers()) {
+            libPBL2::sortManagers(mainWindow->getManagers(), criteria, sortAscending);
+            currentPage = 0;
+            refresh();
+        }
+    });
+
+    // Khung thẻ bo tròn hoàn thiện 4 góc, chống tràn viền
+    auto *tableCard = UIHelper::createTableCard(table);
+    layout->addWidget(tableCard, 1);
 
     // Pagination: Thêm page với stack là 8
     auto *pagination = new QHBoxLayout;
@@ -215,8 +192,9 @@ void AccountView::setupUI() {
         refresh();
     });
 
-    // Dup click vào hàng thì có thể sửa thông tin
-    connect(table, &QTableWidget::cellDoubleClicked, this, [this](int row, int) {
+    // Dup click vào hàng thì có thể sửa thông tin (bỏ qua cột xóa)
+    connect(table, &QTableWidget::cellDoubleClicked, this, [this](int row, int col) {
+        if (col == 4) return;
         if (row < 0 || row >= table->rowCount()) return;
         auto *item = table->item(row, 0);
         if (!item) return;
@@ -295,6 +273,62 @@ void AccountView::refresh() {
         sf.setWeight(QFont::Bold);
         item3->setFont(sf);
         table->setItem(r, 3, item3);
+
+        // Cột 4: Nút xóa tài khoản (icon thùng rác đỏ)
+        auto action = UIHelper::createActionCell(UIHelper::trashIcon(), "Xóa tài khoản");
+        Manager *curUser = mainWindow ? mainWindow->getCurrentManager() : nullptr;
+        bool isSelf = curUser && curUser->getID() == m->getID();
+        bool isTargetRoot = ManagerController::isRootAdmin(m);
+        bool canDeleteAccount = mainWindow && mainWindow->isAdministrator() && !isSelf && !isTargetRoot;
+        if (isSelf) {
+            action.second->setToolTip("Không thể xóa tài khoản hiện đang đăng nhập");
+        } else if (isTargetRoot) {
+            action.second->setToolTip("Không thể xóa tài khoản Quản trị viên gốc");
+        } else if (!canDeleteAccount) {
+            action.second->setToolTip("Bạn không có quyền xóa tài khoản (Yêu cầu quyền Quản trị viên)");
+        }
+
+        connect(action.second, &QPushButton::clicked, this, [this, m]() {
+            if (!mainWindow) return;
+            if (!mainWindow->isAdministrator()) {
+                UIHelper::showWarning(this, "Không có quyền", "Chỉ quản trị viên mới có quyền xóa tài khoản.");
+                return;
+            }
+            Manager *cur = mainWindow->getCurrentManager();
+            if (cur && cur->getID() == m->getID()) {
+                UIHelper::showWarning(this, "Không thể xóa", "Bạn không thể xóa tài khoản hiện đang đăng nhập vào hệ thống.");
+                return;
+            }
+            if (ManagerController::isRootAdmin(m)) {
+                UIHelper::showWarning(this, "Không thể xóa", "Không thể xóa tài khoản Quản trị viên gốc của hệ thống.");
+                return;
+            }
+            if (ManagerController::isAdministrator(m, "Data/PermissionManager.txt") && !mainWindow->isRootAdmin()) {
+                UIHelper::showWarning(this, "Không có quyền", "Chỉ Quản trị viên gốc mới có quyền xóa tài khoản Quản trị viên.");
+                return;
+            }
+            QString name = UIHelper::qs(m->getfullName());
+            if (!UIHelper::confirmDelete(this, "Xác nhận xóa tài khoản",
+                QStringLiteral("Bạn có chắc chắn muốn xóa tài khoản \"%1\" khỏi hệ thống?\nTài khoản sau khi xóa sẽ bị xóa khỏi danh sách.").arg(name),
+                "Xóa tài khoản", "Không xóa")) {
+                return;
+            }
+            std::string mid = m->getID();
+            auto *managers = mainWindow->getManagers();
+            if (managers) {
+                auto *n = managers->getHeader()->next;
+                while (n && n->next) {
+                    if (n->info.getID() == mid) {
+                        managers->remove(n);
+                        break;
+                    }
+                    n = n->next;
+                }
+            }
+            mainWindow->saveAll();
+            refresh();
+        });
+        table->setCellWidget(r, 4, action.first);
     }
 }
 
@@ -413,12 +447,18 @@ void AccountView::addManagerDialog() {
         }
         QComboBox QAbstractItemView::item {
             min-height: 28px;
-            padding-left: 8px;
+            padding: 4px 10px;
             border-radius: 6px;
+            color: #0f172a;
+            background-color: #ffffff;
         }
         QComboBox QAbstractItemView::item:hover {
-            background: #f0fdfa;
-            color: #0d9488;
+            background-color: #f0fdfa;
+            color: #0f766e;
+        }
+        QComboBox QAbstractItemView::item:selected {
+            background-color: #0d9488;
+            color: #ffffff;
         }
     )");
 
@@ -468,6 +508,7 @@ void AccountView::addManagerDialog() {
 
     auto *name = new QLineEdit;
     auto *phone = new QLineEdit;
+    UIHelper::setupPhoneInput(phone);
     auto *row1 = new QHBoxLayout;
     row1->setSpacing(12);
     row1->addLayout(makeField("HỌ VÀ TÊN *", name), 3);
@@ -517,9 +558,15 @@ void AccountView::addManagerDialog() {
     saveBtn->setStyleSheet("QPushButton { background: #0d9488; border: none; border-radius: 8px; padding: 9px 22px; font-size: 13px; font-weight: 700; color: white; } QPushButton:hover { background: #0f766e; }");
 
     connect(saveBtn, &QPushButton::clicked, &dialog, [this, &dialog, name, phone, username, password, age, gender, role] {
-        if (name->text().trimmed().isEmpty() || phone->text().trimmed().isEmpty() ||
+        QString phoneStr = phone->text().trimmed();
+        if (name->text().trimmed().isEmpty() || phoneStr.isEmpty() ||
             username->text().trimmed().isEmpty() || password->text().isEmpty()) {
-            QMessageBox::warning(&dialog, "Thiếu thông tin", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+            UIHelper::showWarning(&dialog, "Thiếu thông tin", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+            return;
+        }
+        if (!UIHelper::isValidPhone(phoneStr)) {
+            UIHelper::showWarning(&dialog, "Số điện thoại không hợp lệ", "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0 (Ví dụ: 0905123456).");
+            phone->setFocus();
             return;
         }
         auto *managers = mainWindow->getManagers();
@@ -527,7 +574,7 @@ void AccountView::addManagerDialog() {
             auto *n = managers->getHeader()->next;
             while (n && n->next) {
                 if (n->info.getUsername() == UIHelper::ss(username->text().trimmed())) {
-                    QMessageBox::warning(&dialog, "Trùng tài khoản", "Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
+                    UIHelper::showWarning(&dialog, "Trùng tài khoản", "Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
                     return;
                 }
                 n = n->next;
@@ -539,11 +586,11 @@ void AccountView::addManagerDialog() {
                        (role->currentIndex() == 1 ? ManagerRole::SpecialReceptionist : ManagerRole::Receptionist);
 
         if (managers) {
-            managers->insert(Manager(id, UIHelper::ss(name->text().trimmed()), UIHelper::ss(phone->text().trimmed()), gender->currentIndex() == 0, age->value(), UIHelper::ss(username->text().trimmed()), UIHelper::ss(password->text()), r, 1));
+            managers->insert(Manager(id, UIHelper::ss(name->text().trimmed()), UIHelper::ss(phoneStr), gender->currentIndex() == 0, age->value(), UIHelper::ss(username->text().trimmed()), UIHelper::ss(password->text()), r, 1));
         }
         mainWindow->saveAll();
         dialog.accept();
-        QMessageBox::information(this, "Thành công", "Tài khoản quản lý mới đã được tạo thành công.");
+        UIHelper::showSuccess(this, "Thành công", "Tài khoản quản lý mới đã được tạo thành công.");
     });
 
     btnBox->addWidget(cancelBtn);
@@ -571,7 +618,7 @@ void AccountView::editManagerDialog(const std::string &managerId) {
 
     // Nếu sửa tài khoản MA_001 mà bản thân không phải root admin thì không có quyền
     if (isTargetRoot && !isCurrentRoot) {
-        QMessageBox::warning(this, "Không có quyền", "Chỉ quản trị viên gốc mới có quyền chỉnh sửa tài khoản này.");
+        UIHelper::showWarning(this, "Không có quyền", "Chỉ quản trị viên gốc mới có quyền chỉnh sửa tài khoản này.");
         return;
     }
 
@@ -687,12 +734,18 @@ void AccountView::editManagerDialog(const std::string &managerId) {
         }
         QComboBox QAbstractItemView::item {
             min-height: 28px;
-            padding-left: 8px;
+            padding: 4px 10px;
             border-radius: 6px;
+            color: #0f172a;
+            background-color: #ffffff;
         }
         QComboBox QAbstractItemView::item:hover {
-            background: #f0fdfa;
-            color: #0d9488;
+            background-color: #f0fdfa;
+            color: #0f766e;
+        }
+        QComboBox QAbstractItemView::item:selected {
+            background-color: #0d9488;
+            color: #ffffff;
         }
     )");
 
@@ -742,6 +795,7 @@ void AccountView::editManagerDialog(const std::string &managerId) {
 
     auto *name = new QLineEdit(UIHelper::qs(targetMgr->getfullName()));
     auto *phone = new QLineEdit(UIHelper::qs(targetMgr->getPhone()));
+    UIHelper::setupPhoneInput(phone);
     auto *row1 = new QHBoxLayout;
     row1->setSpacing(12);
     row1->addLayout(makeField("HỌ VÀ TÊN *", name), 3);
@@ -865,9 +919,15 @@ void AccountView::editManagerDialog(const std::string &managerId) {
     saveBtn->setStyleSheet("QPushButton { background: #0d9488; border: none; border-radius: 8px; padding: 9px 22px; font-size: 13px; font-weight: 700; color: white; } QPushButton:hover { background: #0f766e; }");
 
     connect(saveBtn, &QPushButton::clicked, &dialog, [this, &dialog, targetMgr, managerId, name, phone, age, gender, username, password, role, statusCombo, isTargetRoot, isSelf, isCurrentRoot, checks] {
-        if (name->text().trimmed().isEmpty() || phone->text().trimmed().isEmpty() ||
+        QString phoneStr = phone->text().trimmed();
+        if (name->text().trimmed().isEmpty() || phoneStr.isEmpty() ||
             username->text().trimmed().isEmpty() || password->text().trimmed().isEmpty()) {
-            QMessageBox::warning(&dialog, "Thiếu thông tin", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+            UIHelper::showWarning(&dialog, "Thiếu thông tin", "Vui lòng nhập đầy đủ các thông tin bắt buộc.");
+            return;
+        }
+        if (!UIHelper::isValidPhone(phoneStr)) {
+            UIHelper::showWarning(&dialog, "Số điện thoại không hợp lệ", "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0 (Ví dụ: 0905123456).");
+            phone->setFocus();
             return;
         }
 
@@ -878,7 +938,7 @@ void AccountView::editManagerDialog(const std::string &managerId) {
                 auto *n = managers->getHeader()->next;
                 while (n && n->next) {
                     if (n->info.getID() != targetMgr->getID() && n->info.getUsername() == newUsername) {
-                        QMessageBox::warning(&dialog, "Trùng tài khoản", "Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
+                        UIHelper::showWarning(&dialog, "Trùng tài khoản", "Tên đăng nhập này đã được sử dụng. Vui lòng chọn tên khác.");
                         return;
                     }
                     n = n->next;
@@ -887,7 +947,7 @@ void AccountView::editManagerDialog(const std::string &managerId) {
         }
 
         targetMgr->setfullName(UIHelper::ss(name->text().trimmed()));
-        targetMgr->setPhone(UIHelper::ss(phone->text().trimmed()));
+        targetMgr->setPhone(UIHelper::ss(phoneStr));
         targetMgr->setAge(age->value());
         targetMgr->setGender(gender->currentIndex() == 0);
         targetMgr->setUsername(newUsername);
@@ -920,7 +980,7 @@ void AccountView::editManagerDialog(const std::string &managerId) {
         mainWindow->saveAll();
         refresh();
         dialog.accept();
-        QMessageBox::information(this, "Thành công", "Thông tin tài khoản đã được cập nhật thành công.");
+        UIHelper::showSuccess(this, "Thành công", "Thông tin tài khoản đã được cập nhật thành công.");
     });
 
     btnBox->addWidget(cancelBtn);

@@ -33,6 +33,8 @@ private:
     QPushButton *nextBtn = nullptr;
     QLabel *pageStatus = nullptr;
     int currentPage = 0;
+    int sortColumn = -1;
+    bool sortAscending = true;
     static const int PAGE_SIZE = 50;
 
     void setupUI();

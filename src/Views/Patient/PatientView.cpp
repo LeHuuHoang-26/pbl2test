@@ -1,4 +1,5 @@
 #include "PatientView.h"
+#include "libPBL2.h"
 #include "MainWindow.h"
 #include "PatientController.h"
 #include "UIHelper.h"
@@ -11,7 +12,6 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QScrollArea>
-#include <QMessageBox>
 #include <QHeaderView>
 #include <QLabel>
 #include <QFrame>
@@ -54,58 +54,10 @@ void PatientView::setupUI() {
         addBtn->hide();
     }
 
-    // Table: không hiển thị mã bệnh nhân, không hiển thị triệu chứng
-    table = UIHelper::table({"HỌ VÀ TÊN", "ĐIỆN THOẠI", "CCCD", "TUỔI", "GIỚI TÍNH"});
-    table->setCursor(Qt::PointingHandCursor);
-    table->setStyleSheet(R"(
-        QTableWidget {
-            background-color: #ffffff;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
-            gridline-color: transparent;
-        }
-        QHeaderView {
-            border: none;
-            background: transparent;
-        }
-        QHeaderView::section {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            font-size: 11.5px;
-            padding: 11px 14px;
-            border: none;
-            border-bottom: 2px solid #e2e8f0;
-            border-left: none;
-            border-right: none;
-        }
-        QTableWidget::item {
-            background: #ffffff;
-            border: none;
-            border-bottom: 1px solid #f1f5f9;
-            border-left: none;
-            border-right: none;
-            padding-left: 14px;
-            padding-right: 14px;
-            color: #1e293b;
-            font-size: 13px;
-        }
-        QTableWidget::item:hover {
-            background: #f0fdfa;
-        }
-    )");
-
+    // Table: không hiển thị mã bệnh nhân, không hiển thị triệu chứng, có cột xóa không tiêu đề
+    table = UIHelper::table({"HỌ VÀ TÊN", "ĐIỆN THOẠI", "CCCD", "TUỔI", "GIỚI TÍNH", ""});
     table->setWordWrap(false);
     table->setTextElideMode(Qt::ElideRight);
-    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-    table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
-    table->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
-    table->setColumnWidth(1, 170);
-    table->setColumnWidth(2, 190);
-    table->setColumnWidth(3, 90);
-    table->setColumnWidth(4, 110);
     table->verticalHeader()->setDefaultSectionSize(48);
 
     // Căn lề tên trường (Header) trùng khớp với dữ liệu bên dưới giống trang tổng quát
@@ -114,8 +66,40 @@ void PatientView::setupUI() {
     if (table->horizontalHeaderItem(2)) table->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     if (table->horizontalHeaderItem(3)) table->horizontalHeaderItem(3)->setTextAlignment(Qt::AlignCenter);
     if (table->horizontalHeaderItem(4)) table->horizontalHeaderItem(4)->setTextAlignment(Qt::AlignCenter);
+    if (table->horizontalHeaderItem(5)) table->horizontalHeaderItem(5)->setTextAlignment(Qt::AlignCenter);
 
-    layout->addWidget(table, 1);
+    // Tự động scale các cột sao cho tổng chiều rộng các cột luôn bằng chính xác chiều rộng bảng
+    UIHelper::setupTableScaling(table, {0.28, 0.21, 0.25, 0.11, 0.15}, 56);
+
+    connect(table->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
+        if (logicalIndex < 0 || logicalIndex >= 5) return;
+        if (sortColumn == logicalIndex) {
+            sortAscending = !sortAscending;
+        } else {
+            sortColumn = logicalIndex;
+            sortAscending = true;
+        }
+
+        libPBL2::PatientSortBy criteria = libPBL2::PatientSortBy::Name;
+        switch (logicalIndex) {
+            case 0: criteria = libPBL2::PatientSortBy::Name; break;
+            case 1: criteria = libPBL2::PatientSortBy::Phone; break;
+            case 2: criteria = libPBL2::PatientSortBy::CCCD; break;
+            case 3: criteria = libPBL2::PatientSortBy::Age; break;
+            case 4: criteria = libPBL2::PatientSortBy::Gender; break;
+            default: return;
+        }
+
+        if (mainWindow && mainWindow->getPatients()) {
+            libPBL2::sortPatients(mainWindow->getPatients(), criteria, sortAscending);
+            currentPage = 0;
+            refresh();
+        }
+    });
+
+    // Khung thẻ bo tròn hoàn thiện 4 góc, chống tràn viền
+    auto *tableCard = UIHelper::createTableCard(table);
+    layout->addWidget(tableCard, 1);
 
     // Thanh phân trang (50 người / trang)
     auto *pagination = new QHBoxLayout;
@@ -159,8 +143,9 @@ void PatientView::setupUI() {
         refresh();
     });
 
-    // Tích hợp sửa hồ sơ khi click 2 lần chuột trái (double-click) vào hàng bệnh nhân
-    connect(table, &QTableWidget::cellDoubleClicked, this, [this](int row, int) {
+    // Tích hợp sửa hồ sơ khi click 2 lần chuột trái (double-click) vào hàng bệnh nhân (bỏ qua cột xóa)
+    connect(table, &QTableWidget::cellDoubleClicked, this, [this](int row, int col) {
+        if (col == 5) return;
         if (row < 0 || row >= table->rowCount()) return;
         auto *item = table->item(row, 0);
         if (!item) return;
@@ -263,6 +248,63 @@ void PatientView::refresh() {
         item4->setTextAlignment(Qt::AlignCenter);
         item4->setToolTip("Nháy đúp chuột để sửa hồ sơ bệnh nhân");
         table->setItem(r, 4, item4);
+
+        // Cột Xóa: không có tên trường, chỉ có icon thùng rác đỏ
+        auto action = UIHelper::createActionCell(UIHelper::trashIcon(), "Xóa hồ sơ bệnh nhân");
+        if (mainWindow && !mainWindow->hasPermission("Per_3")) {
+            action.second->setToolTip("Bạn không có quyền xóa hồ sơ bệnh nhân (Yêu cầu quyền Per_3)");
+        }
+        connect(action.second, &QPushButton::clicked, this, [this, p]() {
+            if (!mainWindow) return;
+            if (!mainWindow->hasPermission("Per_3")) {
+                UIHelper::showWarning(this, "Không có quyền", "Bạn không có quyền thực hiện xóa hồ sơ bệnh nhân.");
+                return;
+            }
+            QString name = UIHelper::qs(p->getfullName());
+            if (!UIHelper::confirmDelete(this, "Xác nhận xóa hồ sơ bệnh nhân",
+                QStringLiteral("Bạn có chắc chắn muốn xóa hồ sơ bệnh nhân \"%1\" khỏi hệ thống?\nHồ sơ sau khi xóa sẽ được loại bỏ khỏi danh sách quản lý.").arg(name),
+                "Xóa hồ sơ", "Không xóa")) {
+                return;
+            }
+
+            std::string pid = p->getID();
+            auto *appointments = mainWindow->getAppointments();
+            bool hasUpcoming = false;
+            if (appointments) {
+                auto *an = appointments->getHeader()->next;
+                while (an && an->next) {
+                    if (mainWindow->getPatientIdForAppointment(an->info) == pid && an->info.getState() == 0) {
+                        hasUpcoming = true;
+                        break;
+                    }
+                    an = an->next;
+                }
+            }
+            if (hasUpcoming) {
+                if (!UIHelper::confirmWarning(this, "Cảnh báo lịch khám chưa hoàn tất",
+                    QStringLiteral("Bệnh nhân \"%1\" hiện vẫn còn lịch hẹn chưa khám trong hệ thống.\nBạn vẫn muốn tiếp tục xóa hồ sơ này?").arg(name),
+                    "Vẫn tiếp tục xóa", "Quay lại")) {
+                    return;
+                }
+            }
+
+            auto *patients = mainWindow->getPatients();
+            if (patients) {
+                auto *n = patients->getHeader()->next;
+                while (n && n->next) {
+                    if (n->info.getID() == pid) {
+                        patients->remove(n);
+                        break;
+                    }
+                    n = n->next;
+                }
+            }
+            mainWindow->saveAll();
+            refresh();
+            mainWindow->refreshPage(0);
+        });
+
+        table->setCellWidget(r, 5, action.first);
     }
 }
 
@@ -377,12 +419,18 @@ void PatientView::addPatientDialog() {
         }
         QComboBox QAbstractItemView::item {
             min-height: 28px;
-            padding-left: 8px;
+            padding: 4px 10px;
             border-radius: 6px;
+            color: #0f172a;
+            background-color: #ffffff;
         }
         QComboBox QAbstractItemView::item:hover {
-            background: #f0fdfa;
-            color: #0d9488;
+            background-color: #f0fdfa;
+            color: #0f766e;
+        }
+        QComboBox QAbstractItemView::item:selected {
+            background-color: #0d9488;
+            color: #ffffff;
         }
     )");
 
@@ -438,8 +486,12 @@ void PatientView::addPatientDialog() {
     row1->setSpacing(14);
     auto *phone = new QLineEdit;
     phone->setPlaceholderText("Ví dụ: 0905123456");
+    UIHelper::setupPhoneInput(phone);
+
     auto *cccd = new QLineEdit;
     cccd->setPlaceholderText("Ví dụ: 048096001234");
+    UIHelper::setupCccdInput(cccd);
+
     row1->addLayout(makeField("Số điện thoại liên hệ", phone), 1);
     row1->addLayout(makeField("Số CCCD / Định danh", cccd), 1);
     cardLayout->addLayout(row1);
@@ -475,16 +527,33 @@ void PatientView::addPatientDialog() {
 
     connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
     connect(save, &QPushButton::clicked, &dialog, [this, &dialog, name, phone, cccd, age, gender] {
-        if (name->text().trimmed().isEmpty() || phone->text().trimmed().isEmpty() || cccd->text().trimmed().isEmpty()) {
-            QMessageBox::warning(&dialog, "Thiếu thông tin", "Vui lòng nhập đủ họ tên, điện thoại và CCCD.");
+        QString nameStr = name->text().trimmed();
+        QString phoneStr = phone->text().trimmed();
+        QString cccdStr = cccd->text().trimmed();
+
+        if (nameStr.isEmpty() || phoneStr.isEmpty() || cccdStr.isEmpty()) {
+            UIHelper::showWarning(&dialog, "Thiếu thông tin", "Vui lòng nhập đủ họ tên, điện thoại và CCCD.");
             return;
         }
+
+        if (!UIHelper::isValidPhone(phoneStr)) {
+            UIHelper::showWarning(&dialog, "Số điện thoại không hợp lệ", "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0 (Ví dụ: 0905123456).");
+            phone->setFocus();
+            return;
+        }
+
+        if (!UIHelper::isValidCccd(cccdStr)) {
+            UIHelper::showWarning(&dialog, "Số CCCD không hợp lệ", "Số CCCD phải gồm đúng 12 chữ số và bắt đầu bằng số 0 (Ví dụ: 048096001234).");
+            cccd->setFocus();
+            return;
+        }
+
         auto *patients = mainWindow->getPatients();
         if (patients) {
             auto *n = patients->getHeader()->next;
             while (n && n->next) {
-                if (n->info.getPhone() == UIHelper::ss(phone->text().trimmed()) || n->info.getCCCD() == UIHelper::ss(cccd->text().trimmed())) {
-                    QMessageBox::warning(&dialog, "Trùng hồ sơ", "Số điện thoại hoặc CCCD đã tồn tại.");
+                if (n->info.getPhone() == UIHelper::ss(phoneStr) || n->info.getCCCD() == UIHelper::ss(cccdStr)) {
+                    UIHelper::showWarning(&dialog, "Trùng hồ sơ", "Số điện thoại hoặc CCCD đã tồn tại.");
                     return;
                 }
                 n = n->next;
@@ -493,7 +562,7 @@ void PatientView::addPatientDialog() {
 
         std::string id = Patient::generateNextId(patients);
         if (patients) {
-            patients->insert(Patient(id, UIHelper::ss(name->text().trimmed()), UIHelper::ss(phone->text().trimmed()), gender->currentIndex() == 0, age->value(), UIHelper::ss(cccd->text().trimmed())));
+            patients->insert(Patient(id, UIHelper::ss(nameStr), UIHelper::ss(phoneStr), gender->currentIndex() == 0, age->value(), UIHelper::ss(cccdStr)));
         }
 
         mainWindow->saveAll();
@@ -511,7 +580,7 @@ void PatientView::editPatientDialog(const std::string &id) {
     Patient *patient = mainWindow->findPatient(id);
     if (!patient) return;
     if (!mainWindow->hasPermission("Per_3")) {
-        QMessageBox::warning(this, "Không có quyền", "Bạn không có quyền chỉnh sửa hồ sơ bệnh nhân.");
+        UIHelper::showWarning(this, "Không có quyền", "Bạn không có quyền chỉnh sửa hồ sơ bệnh nhân.");
         return;
     }
 
@@ -623,12 +692,18 @@ void PatientView::editPatientDialog(const std::string &id) {
         }
         QComboBox QAbstractItemView::item {
             min-height: 28px;
-            padding-left: 8px;
+            padding: 4px 10px;
             border-radius: 6px;
+            color: #0f172a;
+            background-color: #ffffff;
         }
         QComboBox QAbstractItemView::item:hover {
-            background: #f0fdfa;
-            color: #0d9488;
+            background-color: #f0fdfa;
+            color: #0f766e;
+        }
+        QComboBox QAbstractItemView::item:selected {
+            background-color: #0d9488;
+            color: #ffffff;
         }
     )");
 
@@ -682,7 +757,11 @@ void PatientView::editPatientDialog(const std::string &id) {
     auto *row1 = new QHBoxLayout;
     row1->setSpacing(14);
     auto *phone = new QLineEdit(UIHelper::qs(patient->getPhone()));
+    UIHelper::setupPhoneInput(phone);
+
     auto *cccd = new QLineEdit(UIHelper::qs(patient->getCCCD()));
+    UIHelper::setupCccdInput(cccd);
+
     row1->addLayout(makeField("Số điện thoại liên hệ", phone), 1);
     row1->addLayout(makeField("Số CCCD / Định danh", cccd), 1);
     cardLayout->addLayout(row1);
@@ -721,25 +800,42 @@ void PatientView::editPatientDialog(const std::string &id) {
 
     connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
     connect(save, &QPushButton::clicked, &dialog, [this, &dialog, patient, name, phone, cccd, age, gender] {
-        if (name->text().trimmed().isEmpty() || phone->text().trimmed().isEmpty() || cccd->text().trimmed().isEmpty()) {
-            QMessageBox::warning(&dialog, "Thiếu thông tin", "Vui lòng nhập đủ họ tên, điện thoại và CCCD.");
+        QString nameStr = name->text().trimmed();
+        QString phoneStr = phone->text().trimmed();
+        QString cccdStr = cccd->text().trimmed();
+
+        if (nameStr.isEmpty() || phoneStr.isEmpty() || cccdStr.isEmpty()) {
+            UIHelper::showWarning(&dialog, "Thiếu thông tin", "Vui lòng nhập đủ họ tên, điện thoại và CCCD.");
             return;
         }
+
+        if (!UIHelper::isValidPhone(phoneStr)) {
+            UIHelper::showWarning(&dialog, "Số điện thoại không hợp lệ", "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0 (Ví dụ: 0905123456).");
+            phone->setFocus();
+            return;
+        }
+
+        if (!UIHelper::isValidCccd(cccdStr)) {
+            UIHelper::showWarning(&dialog, "Số CCCD không hợp lệ", "Số CCCD phải gồm đúng 12 chữ số và bắt đầu bằng số 0 (Ví dụ: 048096001234).");
+            cccd->setFocus();
+            return;
+        }
+
         auto *patients = mainWindow->getPatients();
         if (patients) {
             auto *n = patients->getHeader()->next;
             while (n && n->next) {
-                if (&n->info != patient && (n->info.getPhone() == UIHelper::ss(phone->text().trimmed()) || n->info.getCCCD() == UIHelper::ss(cccd->text().trimmed()))) {
-                    QMessageBox::warning(&dialog, "Trùng hồ sơ", "Số điện thoại hoặc CCCD đã tồn tại.");
+                if (&n->info != patient && (n->info.getPhone() == UIHelper::ss(phoneStr) || n->info.getCCCD() == UIHelper::ss(cccdStr))) {
+                    UIHelper::showWarning(&dialog, "Trùng hồ sơ", "Số điện thoại hoặc CCCD đã tồn tại.");
                     return;
                 }
                 n = n->next;
             }
         }
 
-        patient->setfullName(UIHelper::ss(name->text().trimmed()));
-        patient->setPhone(UIHelper::ss(phone->text().trimmed()));
-        patient->setCCCD(UIHelper::ss(cccd->text().trimmed()));
+        patient->setfullName(UIHelper::ss(nameStr));
+        patient->setPhone(UIHelper::ss(phoneStr));
+        patient->setCCCD(UIHelper::ss(cccdStr));
         patient->setAge(age->value());
         patient->setGender(gender->currentIndex() == 0);
 

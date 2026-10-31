@@ -64,7 +64,6 @@ HEADERS += \
     src/Models/Symptom.h \
     src/Models/SymptomPatient.h \
     src/DataStructures/LinkList.h \
-    src/DataStructures/Queue.h \
     src/Utils/Date.h \
     src/Utils/libPBL2.h \
     src/Controllers/AuthController.h \

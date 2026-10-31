@@ -1,5 +1,6 @@
 #include "StatisticController.h"
 #include "DoctorController.h"
+#include "libPBL2.h"
 
 int StatisticController::patientCount(const LinkList<Patient> *items) {
     return items ? items->count : 0;
@@ -216,15 +217,11 @@ int StatisticController::getTopDoctors(const LinkList<Appointment> *appts, const
         }
     }
 
-    // Sort descending by appointmentCount (simple bubble sort - no forbidden STL headers)
-    for (int i = 0; i < validDoctors - 1; ++i) {
-        for (int j = 0; j < validDoctors - i - 1; ++j) {
-            if (allItems[j].appointmentCount < allItems[j + 1].appointmentCount) {
-                DoctorLeaderboardItem tmp = allItems[j];
-                allItems[j] = allItems[j + 1];
-                allItems[j + 1] = tmp;
-            }
-        }
+    // QuickSort descending by appointmentCount using libPBL2::qsort
+    if (validDoctors > 1) {
+        libPBL2::qsort(allItems, 0, validDoctors - 1, [](const DoctorLeaderboardItem &a, const DoctorLeaderboardItem &b) {
+            return a.appointmentCount > b.appointmentCount;
+        });
     }
 
     int copyCount = (validDoctors < maxCount) ? validDoctors : maxCount;
@@ -268,15 +265,11 @@ int StatisticController::getSpecialtyDemand(const LinkList<Appointment> *appts, 
         an = an->next;
     }
 
-    // Sort descending by count
-    for (int i = 0; i < uniqueCount - 1; ++i) {
-        for (int j = 0; j < uniqueCount - i - 1; ++j) {
-            if (items[j].count < items[j + 1].count) {
-                SpecialtyDemandItem tmp = items[j];
-                items[j] = items[j + 1];
-                items[j + 1] = tmp;
-            }
-        }
+    // QuickSort descending by count using libPBL2::qsort
+    if (uniqueCount > 1) {
+        libPBL2::qsort(items, 0, uniqueCount - 1, [](const SpecialtyDemandItem &a, const SpecialtyDemandItem &b) {
+            return a.count > b.count;
+        });
     }
 
     int copyCount = (uniqueCount < maxCount) ? uniqueCount : maxCount;

@@ -84,3 +84,6 @@ CMakeLists.txt.user*
 # Test and capture artifacts
 login_render_*.png
 test_auth_results.txt
+
+# Log files
+logs/
