@@ -1,30 +1,42 @@
 # 🏥 AnTamMng - HỆ THỐNG QUẢN LÝ PHÒNG KHÁM ĐA KHOA AN TÂM
 
-> **Hệ thống phần mềm chuyên nghiệp phục vụ quản lý lịch khám, điều phối bệnh nhân, quản lý bác sĩ, phân quyền nhân sự và báo cáo thống kê dành cho phòng khám đa khoa.**
+> **Hệ thống phần mềm chuyên nghiệp phục vụ quản lý lịch khám, điều phối bệnh nhân, quản lý bác sĩ, phân quyền nhân sự (RBAC) và báo cáo thống kê trực quan dành cho phòng khám đa khoa.**
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-blue.svg)](https://www.microsoft.com)
 [![Framework](https://img.shields.io/badge/GUI-Qt%206.8%2B-green.svg)](https://www.qt.io/)
 [![Standard](https://img.shields.io/badge/C%2B%2B-20%2F2b-red.svg)](https://isocpp.org/)
 [![Compiler](https://img.shields.io/badge/Compiler-MinGW%20UCRT64%20GCC-purple.svg)](https://www.msys2.org/)
+[![Interactive Diagram](https://img.shields.io/badge/Archify-Interactive%20Diagram-0d9488.svg)](pbl2-architecture.html)
 [![License](https://img.shields.io/badge/Project-PBL%202-orange.svg)](#)
+
+---
+
+## 🌐 SƠ ĐỒ KIẾN TRÚC TƯƠNG TÁC (ARCHIFY)
+
+Dự án đã được tích hợp sơ đồ kiến trúc động chuẩn **Archify**, cho phép quan sát trực quan luồng dữ liệu, phân tầng MVC, cơ chế phân quyền và cấu trúc dữ liệu tự xây dựng:
+* 📊 **Mở sơ đồ kiến trúc tương tác (HTML):** 👉 [**`pbl2-architecture.html`**](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/pbl2-architecture.html)
+* ⚙️ **Đặc tả cấu hình kiến trúc (JSON IR):** [`.archify/architecture-pbl2-overview-20261031-234500/candidate.json`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/.archify/architecture-pbl2-overview-20261031-234500/candidate.json)
+* 💡 Hỗ trợ chế độ Sáng / Tối, phóng to thu nhỏ, tìm kiếm node, animation motion và xuất ảnh PNG/SVG/WebM phục vụ báo cáo.
 
 ---
 
 ## 📖 MỤC LỤC
 1. [Giới thiệu Tổng quan](#1-giới-thiệu-tổng-quan)
-2. [Điểm nổi bật Kỹ thuật](#2-điểm-nổi-bật-kỹ-thuật)
-3. [Cấu trúc Thư mục Dự án](#3-cấu-trúc-thư-mục-dự-án)
-4. [Các Phân hệ Chức năng Chính](#4-các-phân-hệ-chức-năng-chính)
-   - [4.1. Xác thực & Phân quyền Tài khoản (RBAC)](#41-xác-thực--phân-quyền-tài-khoản-rbac)
-   - [4.2. Quản lý Đặt lịch Khám & Điều phối (Appointment & Triage)](#42-quản-lý-đặt-lịch-khám--điều-phối-appointment--triage)
-   - [4.3. Quản lý Đội ngũ Bác sĩ (Doctor Management)](#43-quản-lý-đội-ngũ-bác-sĩ-doctor-management)
-   - [4.4. Quản lý Bệnh nhân & Bệnh án (Patient Management)](#44-quản-lý-bệnh-nhân--bệnh-án-patient-management)
-   - [4.5. Thống kê & Báo cáo Trực quan (Analytics & Charts)](#45-thống-kê--báo-cáo-trực-quan-analytics--charts)
-   - [4.6. Cấu hình Hệ thống & Quản lý Nghỉ Lễ (Config & Holidays)](#46-cấu-hình-hệ-thống--quản-lý-nghỉ-lễ-config--holidays)
-5. [Quy chuẩn Ma trận Phân quyền](#5-quy-chuẩn-ma-trận-phân-quyền)
-6. [Yêu cầu Môi trường & Hướng dẫn Cài đặt](#6-yêu-cầu-môi-trường--hướng-dẫn-cài-đặt)
-7. [Hướng dẫn Khởi chạy Ứng dụng](#7-hướng-dẫn-khởi-chạy-ứng-dụng)
-8. [Thông tin Bản quyền & Hỗ trợ](#8-thông-tin-bản-quyền--hỗ-trợ)
+2. [Điểm nổi bật Kỹ thuật & Ràng buộc Thiết kế](#2-điểm-nổi-bật-kỹ-thuật--ràng-buộc-thiết-kế)
+3. [Kiến trúc Hệ thống (System Architecture)](#3-kiến-trúc-hệ-thống-system-architecture)
+4. [Cấu trúc Thư mục Dự án](#4-cấu-trúc-thư-mục-dự-án)
+5. [Các Phân hệ Chức năng Chính](#5-các-phân-hệ-chức-năng-chính)
+   - [5.1. Xác thực & Phân quyền Tài khoản Động (RBAC)](#51-xác-thực--phân-quyền-tài-khoản-động-rbac)
+   - [5.2. Quản lý Đặt lịch Khám & Sàng lọc Triệu chứng (Triage)](#52-quản-lý-đặt-lịch-khám--sàng-lọc-triệu-chứng-triage)
+   - [5.3. Quản lý Đội ngũ Bác sĩ (Doctor Management)](#53-quản-lý-đội-ngũ-bác-sĩ-doctor-management)
+   - [5.4. Quản lý Bệnh nhân & Hồ sơ Bệnh án (Patient Management)](#54-quản-lý-bệnh-nhân--hồ-sơ-bệnh-án-patient-management)
+   - [5.5. Thống kê & Báo cáo Trực quan (Analytics & Charts)](#55-thống-kê--báo-cáo-trực-quan-analytics--charts)
+   - [5.6. Cấu hình Hệ thống & Quản lý Nghỉ Lễ (Config & Holidays)](#56-cấu-hình-hệ-thống--quản-lý-nghỉ-lễ-config--holidays)
+6. [Quy chuẩn Ma trận Phân quyền](#6-quy-chuẩn-ma-trận-phân-quyền)
+7. [Yêu cầu Môi trường & Hướng dẫn Cài đặt](#7-yêu-cầu-môi-trường--hướng-dẫn-cài-đặt)
+8. [Hướng dẫn Khởi chạy Ứng dụng](#8-hướng-dẫn-khởi-chạy-ứng-dụng)
+9. [Tài khoản Mẫu Trải nghiệm](#9-tài-khoản-mẫu-trải-nghiệm)
+10. [Tài liệu Thuật toán Chuyên sâu](#10-tài-liệu-thuật-toán-chuyên-sâu)
 
 ---
 
@@ -46,33 +58,100 @@ flowchart LR
 
 ---
 
-## 2. ĐIỂM NỔI BẬT KỸ THUẬT
+## 2. ĐIỂM NỔI BẬT KỸ THUẬT & RÀNG BUỘC THIẾT KẾ
 
-* **100% Thuần C++ & Cấu trúc Dữ liệu Tự xây dựng (No-STL banned headers):**
-  - Tuyệt đối không sử dụng các container có sẵn của thư viện chuẩn STL (`<vector>`, `<algorithm>`, `<map>`, `<set>`, `<functional>`,...).
+* **100% Thuần C++ & Cấu trúc Dữ liệu Tự xây dựng (No Forbidden STL Containers):**
+  - Tuyệt đối tuân thủ quy chuẩn học phần PBL 2: Không sử dụng các container và giải thuật có sẵn của thư viện chuẩn STL (`<vector>`, `<algorithm>`, `<map>`, `<set>`, `<functional>`, `<list>`,...).
   - Tự hiện thực cấu trúc dữ liệu danh sách liên kết đôi có nút canh giữ (`LinkList<T>`) và hàng đợi FIFO (`Queue<T>`).
 * **Kiến trúc Phần mềm MVC phân tách mạch lạc:**
   - **Models:** Đại diện cho các thực thể nghiệp vụ (`Human`, `Doctor`, `Patient`, `Manager`, `Appointment`, `Symptom`, `SymptomPatient`, `Permission`).
   - **Controllers:** Chứa toàn bộ logic nghiệp vụ, thuật toán sắp xếp, lọc, tính toán doanh thu và phân quyền.
   - **Views:** Giao diện đồ họa Qt 6 tương tác phong phú, tự động co giãn thích ứng từ độ phân giải 1024x768 đến 4K.
 * **Portable Windows Launcher chuyên dụng:**
-  - Tích hợp launcher nhị phân viết bằng C thuần (`AnTamMng.exe` ở thư mục gốc), tự động định vị thư mục làm việc, tải môi trường và khởi chạy ứng dụng lõi `bin/AnTamMng.exe` mà không gây nhấp nháy cửa sổ dòng lệnh đen (console window).
+  - Tích hợp launcher nhị phân viết bằng C thuần (`AnTamMng.exe` ở thư mục gốc), tự động định vị thư mục làm việc, tải môi trường và khởi chạy ứng dụng lõi `bin/AnTamMng.exe` mà không gây nhấp nháy cửa sổ console đen.
+* **Hệ thống Ghi Log Đồng bộ & An toàn Đa luồng (Thread-safe Logging):**
+  - Sử dụng `QMutex` và bộ lọc thông điệp tùy biến (`customMessageHandler`), ghi nhận toàn bộ hoạt động vào `logs/app.log` với timestamp chuẩn tới mili-giây.
 * **Tìm kiếm Tiếng Việt thông minh không phân biệt dấu:**
   - Thuật toán bóc tách dấu Unicode tiếng Việt giúp người dùng tìm kiếm tên bệnh nhân, bác sĩ, triệu chứng dễ dàng bằng cả chữ thường, chữ hoa hoặc gõ không dấu.
 
 ---
 
-## 3. CẤU TRÚC THƯ MỤC DỰ ÁN
+## 3. KIẾN TRÚC HỆ THỐNG (SYSTEM ARCHITECTURE)
+
+Hệ thống được tổ chức thành 5 phân tầng rõ ràng:
+
+```mermaid
+graph TD
+    subgraph UI_Layer["1. Presentation Tier (Qt5 / Qt6 GUI Views)"]
+        MW["MainWindow (QStackedWidget)"]
+        LoginV["Login Dialog"]
+        ApptV["AppointmentView"]
+        PatV["PatientView"]
+        DocV["DoctorView"]
+        StatV["StatisticView"]
+        AccV["AccountView"]
+        UIH["UIHelper Utility"]
+    end
+
+    subgraph Controller_Layer["2. Business Logic Tier (Controllers)"]
+        AuthCtrl["AuthController"]
+        ApptCtrl["AppointmentController"]
+        PatCtrl["PatientController"]
+        DocCtrl["DoctorController"]
+        StatCtrl["StatisticController"]
+        MngCtrl["ManagerController"]
+    end
+
+    subgraph Model_Layer["3. Domain Model Tier (Entities)"]
+        H["Human (Base Class)"]
+        Pat["Patient"]
+        Doc["Doctor"]
+        Mng["Manager"]
+        Appt["Appointment"]
+        Sym["Symptom"]
+        SymPat["SymptomPatient"]
+        Perm["Permission"]
+    end
+
+    subgraph DS_Layer["4. Custom Data Structures & Utils"]
+        LL["LinkList&lt;T&gt; (Doubly Linked List)"]
+        Q["Queue&lt;T&gt; (FIFO Queue)"]
+        DT["Date (Custom DateTime)"]
+        LP["libPBL2 (String/Validation Helpers)"]
+    end
+
+    subgraph Storage_Layer["5. Data Persistence Tier (Flat-File Storage)"]
+        FAppt["data/Appointment.txt"]
+        FPat["data/Patient.txt"]
+        FDoc["data/Doctor/Doctor.txt"]
+        FSpec["data/Doctor/Specialization.txt"]
+        FSym["data/Symptom/Symptom.txt"]
+        FSymPat["data/Symptom/SymptomPatient.txt"]
+        FMng["data/Manager.txt"]
+        FPerm["data/PermissionManager.txt"]
+        FHol["Config/Lichnghile.txt"]
+    end
+
+    UI_Layer --> Controller_Layer
+    Controller_Layer --> Model_Layer
+    Model_Layer --> DS_Layer
+    Model_Layer --> Storage_Layer
+    Controller_Layer --> Storage_Layer
+```
+
+---
+
+## 4. CẤU TRÚC THƯ MỤC DỰ ÁN
 
 ```text
 pbl2_v1.1/
-├── AnTamMng.exe                 # Trình khởi chạy portable gốc (C Launcher)
-├── launcher.bat                 # Script khởi động tự động nhanh
-├── start.bat                    # Script khởi chạy và tự động biên dịch nếu thiếu bin
-├── PBL_2.pro                    # File cấu hình dự án qmake cho Qt 6
+├── AnTamMng.exe                 # Trình khởi chạy portable gốc (C Launcher không console)
+├── create_portable.bat          # Script tự động build & đóng gói bản portable độc lập
+├── PBL_2.pro                    # File cấu hình dự án qmake cho Qt 6 / MinGW
 ├── resource.qrc                 # File tài nguyên nhúng (Fonts, Icons, Textures)
 ├── README.md                    # Tài liệu tổng quan chức năng ứng dụng
-├── funtionAlgorithms.md         # Phân tích chi tiết source code, thuật toán & hàm
+├── funtionAlgorithms.md         # Phân tích kỹ thuật chuyên sâu về source code & giải thuật
+├── pbl2-architecture.html       # Sơ đồ kiến trúc tương tác Archify (Mở trên trình duyệt)
 ├── Config/                      # Cấu hình hệ sinh thái
 │   ├── Lichnghile.txt           # Danh mục các ngày nghỉ lễ, Tết của phòng khám
 │   └── Permission.txt           # Danh mục quyền hệ thống chuẩn (Per_1 -> Per_5)
@@ -93,21 +172,23 @@ pbl2_v1.1/
 ├── bin/                         # Thư mục chứa file nhị phân & DLL runtime Qt 6
 │   ├── AnTamMng.exe             # Ứng dụng thực thi chính
 │   └── *.dll                    # Các thư viện liên kết động Qt 6 & MinGW
-└── src/                         # Mã nguồn dự án
-    ├── main.cpp                 # Điểm khởi đầu ứng dụng (Application Entry)
+├── logs/                        # Thư mục lưu nhật ký hoạt động hệ thống
+│   └── app.log                  # File log an toàn đa luồng
+└── src/                         # Mã nguồn C++ dự án
+    ├── main.cpp                 # Điểm khởi đầu ứng dụng & bộ lọc log QMutex
     ├── Controllers/             # Các bộ điều khiển nghiệp vụ (6 Controllers)
     ├── DataStructures/          # Cấu trúc dữ liệu tự định nghĩa (LinkList, Queue)
     ├── Launcher/                # Mã nguồn trình khởi chạy C & Resource Icon
     ├── Models/                  # Các lớp thực thể đối tượng (8 Models)
     ├── Utils/                   # Tiện ích ngày tháng (Date) và chuỗi (libPBL2)
-    └── Views/                   # Giao diện người dùng Qt 6 (6 Phân hệ View)
+    └── Views/                   # Giao diện người dùng Qt 6 (6 Phân hệ View mô-đun)
 ```
 
 ---
 
-## 4. CÁC PHÂN HỆ CHỨC NĂNG CHÍNH
+## 5. CÁC PHÂN HỆ CHỨC NĂNG CHÍNH
 
-### 4.1. Xác thực & Phân quyền Tài khoản (RBAC)
+### 5.1. Xác thực & Phân quyền Tài khoản Động (RBAC)
 * **Đăng nhập an toàn:**
   - Giao diện đăng nhập hiện đại với hình họa y tế (sóng ECG, dấu thập y khoa, hiệu ứng ánh sáng ambient).
   - Kiểm tra tính hợp lệ của tài khoản: tên đăng nhập, mật khẩu, trạng thái tài khoản (`Active` / `Locked`).
@@ -120,7 +201,7 @@ pbl2_v1.1/
   - Ngăn chặn người dùng tự khóa tài khoản của chính mình.
   - Ngăn chặn chỉnh sửa hoặc thao tác nguy hiểm lên các tài khoản đồng cấp hoặc cấp cao hơn.
 
-### 4.2. Quản lý Đặt lịch Khám & Điều phối (Appointment & Triage)
+### 5.2. Quản lý Đặt lịch Khám & Sàng lọc Triệu chứng (Triage)
 * **Dashboard Lịch khám Tương tác:**
   - Lịch tháng thông minh (`QCalendarWidget`) được tùy biến giao diện: tự động làm nổi bật các ngày có lịch hẹn khám, đổi màu đặc biệt cho các ngày nghỉ lễ/Tết.
   - Xem nhanh danh sách các cuộc hẹn trong ngày được chọn hoặc toàn bộ lịch sắp tới.
@@ -138,7 +219,7 @@ pbl2_v1.1/
   - `Delayed (-1)` - Trễ hẹn (hệ thống tự động tính toán dựa trên thời gian thực tế so với giờ hẹn).
 * **Bộ lọc Đa tiêu chí:** Lọc tức thì theo ngày hẹn, trạng thái, bác sĩ phụ trách, chuyên khoa và thanh tìm kiếm từ khóa không dấu.
 
-### 4.3. Quản lý Đội ngũ Bác sĩ (Doctor Management)
+### 5.3. Quản lý Đội ngũ Bác sĩ (Doctor Management)
 * **Hồ sơ Bác sĩ Chi tiết:**
   - Mã bác sĩ (`D_ID`), Họ và tên, Giới tính, Tuổi, Số điện thoại.
   - Chuyên khoa trực thuộc (Nội khoa, Ngoại khoa, Nhi khoa, Tai Mũi Họng, Răng Hàm Mặt, Mắt, Da liễu, Tim mạch,...).
@@ -152,16 +233,16 @@ pbl2_v1.1/
   - Khóa/mở trạng thái hoạt động của bác sĩ.
   - Theo dõi danh sách các ca khám được phân công theo bác sĩ.
 
-### 4.4. Quản lý Bệnh nhân & Bệnh án (Patient Management)
+### 5.4. Quản lý Bệnh nhân & Hồ sơ Bệnh án (Patient Management)
 * **Hồ sơ Nhân khẩu học:**
-  - Mã bệnh nhân (`PAT001`, `PAT002`,...), Số CCCD/CMND định danh.
+  - Mã bệnh nhân (`PAT001`, `PAT002`,...), Số CCCD/CMND định danh y tế.
   - Họ và tên, Tuổi, Giới tính, Số điện thoại liên hệ.
 * **Liên kết Bệnh án Triệu chứng:**
   - Ghi nhận lịch sử triệu chứng của từng lần khám (`SymptomPatient`).
   - Phân loại trạng thái triệu chứng: Chưa xử lý (đang chờ khám) và Đã xử lý (sau khi hoàn thành cuộc hẹn).
   - Thống kê lịch sử khám bệnh và các lần tái khám của bệnh nhân.
 
-### 4.5. Thống kê & Báo cáo Trực quan (Analytics & Charts)
+### 5.5. Thống kê & Báo cáo Trực quan (Analytics & Charts)
 * **Hệ thống Thẻ KPI Tổng quan:**
   - Tổng số bệnh nhân đăng ký trong hệ thống.
   - Tổng số bác sĩ đang công tác.
@@ -174,7 +255,7 @@ pbl2_v1.1/
   - **Bảng Xếp hạng (Leaderboard):** Top các bác sĩ tiêu biểu có số ca khám nhiều nhất và đánh giá cao nhất.
   - **Phân tích Nhu cầu Chuyên khoa:** Thống kê chuyên khoa có số lượng bệnh nhân quan tâm cao nhất để tối ưu hóa điều phối nhân lực.
 
-### 4.6. Cấu hình Hệ thống & Quản lý Nghỉ Lễ (Config & Holidays)
+### 5.6. Cấu hình Hệ thống & Quản lý Nghỉ Lễ (Config & Holidays)
 * **Quản lý Danh mục Lịch Nghỉ Lễ:**
   - Quản lý danh sách ngày nghỉ theo lịch nhà nước (Tết Dương lịch, Giỗ tổ Hùng Vương, 30/4 - 1/5, Quốc khánh) và các ngày nghỉ đột xuất của phòng khám.
   - Thêm, sửa, xóa ngày nghỉ kèm ghi chú giải thích.
@@ -182,7 +263,7 @@ pbl2_v1.1/
 
 ---
 
-## 5. QUY CHUẨN MA TRẬN PHÂN QUYỀN
+## 6. QUY CHUẨN MA TRẬN PHÂN QUYỀN
 
 Hệ thống triển khai cơ chế kiểm soát truy cập dựa trên vai trò kết hợp phân quyền động theo thời gian:
 
@@ -201,7 +282,7 @@ Hệ thống triển khai cơ chế kiểm soát truy cập dựa trên vai trò
 
 ---
 
-## 6. YÊU CẦU MÔI TRƯỜNG & HƯỚNG DẪN CÀI ĐẶT
+## 7. YÊU CẦU MÔI TRƯỜNG & HƯỚNG DẪN CÀI ĐẶT
 
 ### Yêu cầu phần mềm
 * **Hệ điều hành:** Windows 10 / Windows 11 (64-bit).
@@ -231,35 +312,40 @@ Hệ thống triển khai cơ chế kiểm soát truy cập dựa trên vai trò
    ```
    *File thực thi lõi sẽ được tạo ra tại: `bin\AnTamMng.exe`.*
 
-5. **(Tùy chọn) Biên dịch Portable C Launcher:**
+5. **(Khuyên dùng) Tự động build và đóng gói Portable hoàn chỉnh:**
+   Nhấp đúp hoặc chạy script:
    ```cmd
-   cd src\Launcher
-   build_launcher.bat
+   create_portable.bat
    ```
-   *File launcher gốc `AnTamMng.exe` sẽ được tạo ra tại thư mục gốc của dự án.*
+   *Script sẽ tự động biên dịch dự án, đồng bộ plugins/DLLs và biên dịch C Launcher độc lập `AnTamMng.exe` ở root.*
 
 ---
 
-## 7. HƯỚNG DẪN KHỞI CHẠY ỨNG DỤNG
+## 8. HƯỚNG DẪN KHỞI CHẠY ỨNG DỤNG
 
 Người dùng có thể khởi chạy ứng dụng bằng một trong các phương thức tiện lợi sau:
 
-1. **Cách 1 (Khuyên dùng):** Nhấp đúp chuột trực tiếp vào file **[`AnTamMng.exe`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/AnTamMng.exe)** ở thư mục gốc. Đây là portable launcher C không nhấp nháy cửa sổ console đen, tự động liên kết tài nguyên và mở giao diện ứng dụng mượt mà.
-2. **Cách 2:** Chạy file kịch bản **[`start.bat`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/start.bat)** hoặc **[`launcher.bat`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/launcher.bat)**. Kịch bản này tự động kiểm tra môi trường, nạp thư viện DLL và nếu chưa có file thực thi sẽ tự động biên dịch dự án.
+1. **Cách 1 (Khuyên dùng):** Nhấp đúp chuột trực tiếp vào file **[`AnTamMng.exe`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/AnTamMng.exe)** ở thư mục gốc. Đây là portable launcher C thuần (static runtime) không nhấp nháy console đen, tự động thiết lập môi trường cô lập, nạp Qt plugins và mở giao diện ứng dụng mượt mà trên **mọi máy tính Windows khác**.
+2. **Cách 2:** Chạy script **[`create_portable.bat`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/create_portable.bat)** nếu muốn tự động kiểm tra, đồng bộ thư viện và tái tạo launcher.
 3. **Cách 3:** Chạy trực tiếp từ file nhị phân chính **[`bin/AnTamMng.exe`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/bin/AnTamMng.exe)**.
-
-### Tài khoản đăng nhập mẫu
-
-| Tài khoản (Username) | Mật khẩu (Password) | Vai trò (Role) | Mô tả |
-| :--- | :--- | :--- | :--- |
-| `admin` | `admin123` | **Administrator** | Toàn quyền quản trị hệ thống |
-| `receptionist1` | `rec123` | **Receptionist** | Nhân viên tiếp đón & đặt lịch |
 
 ---
 
-## 8. THÔNG TIN BẢN QUYỀN & HỖ TRỢ
+## 9. TÀI KHOẢN MẪU TRẢI NGHIỆM
+
+| Tài khoản (Username) | Mật khẩu (Password) | Vai trò (Role) | Mô tả quyền hạn |
+| :--- | :--- | :--- | :--- |
+| `admin` | `admin123` | **Administrator** | Toàn quyền quản trị hệ thống, quản lý tài khoản, báo cáo và cấu hình |
+| `receptionist1` | `rec123` | **Receptionist** | Nhân viên tiếp đón, tra cứu bệnh nhân, sàng lọc triệu chứng & đặt lịch |
+
+---
+
+## 10. TÀI LIỆU THUẬT TOÁN CHUYÊN SÂU
+
+Để xem phân tích kỹ thuật toàn diện về từng file mã nguồn, cấu trúc dữ liệu tự định nghĩa, độ phức tạp thuật toán và chi tiết hiện thực từng phương thức:
+👉 Tham khảo file: [**`funtionAlgorithms.md`**](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/funtionAlgorithms.md) *(hoặc [`functionalAlgorithms.md`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/functionalAlgorithms.md))*.
+
+---
 
 * **Đơn vị phát triển:** Dự án PBL 2 - Đồ án Cơ sở Ngành Công nghệ Thông tin.
-* **Bản quyền:** © 2026 Nhà Khám An Tâm. Hệ thống Quản lý Đặt lịch Khám bệnh.
-* **Email hỗ trợ kỹ thuật:** `antam@support.vn`
-* **Tài liệu thuật toán chuyên sâu:** Vui lòng tham khảo file [`funtionAlgorithms.md`](file:///d:/Documents/Project/pbl_2/pbl2_v1.1/funtionAlgorithms.md) để xem phân tích chi tiết về thuật toán, cấu trúc dữ liệu và chức năng của từng file mã nguồn.
+* **Bản quyền:** © 2026 Phòng Khám Đa Khoa An Tâm.
