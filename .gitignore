@@ -64,6 +64,7 @@ CMakeLists.txt.user*
 # MinGW generated files
 *.Debug
 *.Release
+Makefile
 
 # Python byte code
 *.pyc
@@ -87,3 +88,4 @@ test_auth_results.txt
 
 # Log files
 logs/
+
